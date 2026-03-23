@@ -1,4 +1,4 @@
-.PHONY: proto-generate mock-generate db-migrate test
+.PHONY: proto-generate mock-generate db-migrate test scheduler
 
 ## proto-generate: lint proto files then generate Go stubs from .proto definitions
 proto-generate:
@@ -15,3 +15,7 @@ db-migrate:
 
 test:
 	go test -v ./...
+
+## scheduler: run the background scheduler (job-checker cron and future jobs)
+scheduler:
+	go run ./cmd/scheduler

@@ -241,3 +241,54 @@ func (_c *Usecase_SubmitBulkChatCompletions_Call) RunAndReturn(run func(context1
 	_c.Call.Return(run)
 	return _c
 }
+
+// SyncBatchJobStatus provides a mock function for the type Usecase
+func (_mock *Usecase) SyncBatchJobStatus(context1 context.Context) error {
+	ret := _mock.Called(context1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SyncBatchJobStatus")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context) error); ok {
+		r0 = returnFunc(context1)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// Usecase_SyncBatchJobStatus_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SyncBatchJobStatus'
+type Usecase_SyncBatchJobStatus_Call struct {
+	*mock.Call
+}
+
+// SyncBatchJobStatus is a helper method to define mock.On call
+//   - context1 context.Context
+func (_e *Usecase_Expecter) SyncBatchJobStatus(context1 interface{}) *Usecase_SyncBatchJobStatus_Call {
+	return &Usecase_SyncBatchJobStatus_Call{Call: _e.mock.On("SyncBatchJobStatus", context1)}
+}
+
+func (_c *Usecase_SyncBatchJobStatus_Call) Run(run func(context1 context.Context)) *Usecase_SyncBatchJobStatus_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *Usecase_SyncBatchJobStatus_Call) Return(err error) *Usecase_SyncBatchJobStatus_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *Usecase_SyncBatchJobStatus_Call) RunAndReturn(run func(context1 context.Context) error) *Usecase_SyncBatchJobStatus_Call {
+	_c.Call.Return(run)
+	return _c
+}

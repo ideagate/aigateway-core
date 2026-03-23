@@ -8,6 +8,7 @@ import (
 	"time"
 
 	aigatewayv1 "github.com/ideagate/aigateway-core/gen/aigateway/v1"
+	"github.com/ideagate/aigateway-core/internal/aigateway/models"
 	"google.golang.org/genai"
 )
 
@@ -96,4 +97,43 @@ func (g *GoogleProvider) SubmitBatchJob(ctx context.Context, requests []*aigatew
 	return &aigatewayv1.SubmitBulkChatCompletionsResponse{
 		JobId: job.DisplayName,
 	}, nil
+}
+
+// GetBatchJobStatus polls the provider once and returns the current status.
+// On success/partial-success the full InlinedResponses slice is JSON-serialised
+// into ResultsJSON so callers can persist it directly.
+func (g *GoogleProvider) GetBatchJobStatus(ctx context.Context, referenceID string) (*BatchJobStatusResult, error) {
+	job, err := g.client.Batches.Get(ctx, referenceID, &genai.GetBatchJobConfig{})
+	if err != nil {
+		return nil, fmt.Errorf("get batch job %s: %w", referenceID, err)
+	}
+
+	result := &BatchJobStatusResult{}
+
+	switch job.State {
+	case genai.JobStateSucceeded, genai.JobStatePartiallySucceeded:
+		result.Status = models.BatchJobStatusCompleted
+
+		var responses any
+		if job.Dest != nil {
+			responses = job.Dest.InlinedResponses
+		}
+		resultsJSON, err := json.Marshal(responses)
+		if err != nil {
+			return nil, fmt.Errorf("marshal batch results: %w", err)
+		}
+		result.ResultsJSON = resultsJSON
+
+	case genai.JobStateFailed:
+		result.Status = models.BatchJobStatusFailed
+
+	case genai.JobStateCancelled, genai.JobStateCancelling:
+		result.Status = models.BatchJobStatusFailed
+
+	default:
+		// JOB_STATE_RUNNING, JOB_STATE_QUEUED, etc. — still in flight.
+		result.Status = models.BatchJobStatusProcessing
+	}
+
+	return result, nil
 }

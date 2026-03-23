@@ -8,6 +8,7 @@ import (
 	"context"
 
 	"github.com/ideagate/aigateway-core/gen/aigateway/v1"
+	"github.com/ideagate/aigateway-core/internal/aigateway/providers"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -36,6 +37,74 @@ type Provider_Expecter struct {
 
 func (_m *Provider) EXPECT() *Provider_Expecter {
 	return &Provider_Expecter{mock: &_m.Mock}
+}
+
+// GetBatchJobStatus provides a mock function for the type Provider
+func (_mock *Provider) GetBatchJobStatus(ctx context.Context, referenceID string) (*providers.BatchJobStatusResult, error) {
+	ret := _mock.Called(ctx, referenceID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetBatchJobStatus")
+	}
+
+	var r0 *providers.BatchJobStatusResult
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*providers.BatchJobStatusResult, error)); ok {
+		return returnFunc(ctx, referenceID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *providers.BatchJobStatusResult); ok {
+		r0 = returnFunc(ctx, referenceID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*providers.BatchJobStatusResult)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, referenceID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// Provider_GetBatchJobStatus_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetBatchJobStatus'
+type Provider_GetBatchJobStatus_Call struct {
+	*mock.Call
+}
+
+// GetBatchJobStatus is a helper method to define mock.On call
+//   - ctx context.Context
+//   - referenceID string
+func (_e *Provider_Expecter) GetBatchJobStatus(ctx interface{}, referenceID interface{}) *Provider_GetBatchJobStatus_Call {
+	return &Provider_GetBatchJobStatus_Call{Call: _e.mock.On("GetBatchJobStatus", ctx, referenceID)}
+}
+
+func (_c *Provider_GetBatchJobStatus_Call) Run(run func(ctx context.Context, referenceID string)) *Provider_GetBatchJobStatus_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *Provider_GetBatchJobStatus_Call) Return(batchJobStatusResult *providers.BatchJobStatusResult, err error) *Provider_GetBatchJobStatus_Call {
+	_c.Call.Return(batchJobStatusResult, err)
+	return _c
+}
+
+func (_c *Provider_GetBatchJobStatus_Call) RunAndReturn(run func(ctx context.Context, referenceID string) (*providers.BatchJobStatusResult, error)) *Provider_GetBatchJobStatus_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // Name provides a mock function for the type Provider

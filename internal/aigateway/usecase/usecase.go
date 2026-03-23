@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/binary"
 	"fmt"
+	"log"
 	"time"
 
 	aigatewayv1 "github.com/ideagate/aigateway-core/gen/aigateway/v1"
@@ -14,22 +15,38 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+const (
+	// lockTTL is the Redis lock expiry for distributed batch-job processing.
+	// Long enough to outlive a single GetBatchJobStatus round-trip; short enough
+	// that a dead pod's lock expires before the next cron tick.
+	lockTTL = 2 * time.Minute
+
+	lockKeyPrefix = "aigateway:batchjob:lock:"
+)
+
 type Usecase interface {
 	SubmitBulkChatCompletions(context.Context, []*aigatewayv1.SubmitBulkChatCompletionsRequest) (*aigatewayv1.SubmitBulkChatCompletionsResponse, error)
 	GetJobStatus(context.Context, *aigatewayv1.GetJobStatusRequest) (*aigatewayv1.GetJobStatusResponse, error)
 	GetJobResults(context.Context, *aigatewayv1.GetJobResultsRequest) ([]*aigatewayv1.GetJobResultsResponse, error)
+	// SyncBatchJobStatus polls all active batch jobs against the AI provider and
+	// updates their status and results in the database. Intended to be called
+	// from a periodic scheduler. A per-job distributed Redis lock ensures each
+	// job is processed by at most one pod even under concurrent execution.
+	SyncBatchJobStatus(context.Context) error
 }
 
 type usecase struct {
-	provider   providers.Provider
-	repository repository.Repository
+	provider        providers.Provider
+	repository      repository.Repository
+	distributedLock repository.DistributionLock
 }
 
-// New constructs the concrete Usecase implementation.
-func New(provider providers.Provider, repo repository.Repository) Usecase {
+// New constructs a Usecase with an explicit lock backend.
+func New(provider providers.Provider, repo repository.Repository, repoLock repository.DistributionLock) Usecase {
 	return &usecase{
-		provider:   provider,
-		repository: repo,
+		provider:        provider,
+		repository:      repo,
+		distributedLock: repoLock,
 	}
 }
 
@@ -75,6 +92,80 @@ func (u *usecase) GetJobStatus(ctx context.Context, req *aigatewayv1.GetJobStatu
 
 func (u *usecase) GetJobResults(ctx context.Context, req *aigatewayv1.GetJobResultsRequest) ([]*aigatewayv1.GetJobResultsResponse, error) {
 	panic("not implemented")
+}
+
+// SyncBatchJobStatus fetches all active batch jobs and checks their current
+// status with the provider. Per-job errors are logged and do not abort the
+// processing of remaining jobs.
+func (u *usecase) SyncBatchJobStatus(ctx context.Context) error {
+	jobs, err := u.repository.GetActiveBatchJobs(ctx)
+	if err != nil {
+		return fmt.Errorf("GetActiveBatchJobs: %w", err)
+	}
+
+	if len(jobs) == 0 {
+		return nil
+	}
+
+	log.Printf("[usecase] SyncBatchJobStatus: checking %d active job(s)", len(jobs))
+
+	for _, job := range jobs {
+		if err := u.syncJobStatus(ctx, job); err != nil {
+			log.Printf("[usecase] SyncBatchJobStatus: job %s: %v", job.ID, err)
+		}
+	}
+	return nil
+}
+
+// syncJobStatus acquires the distributed lock for one job, checks its provider
+// status, and persists any changes.
+func (u *usecase) syncJobStatus(ctx context.Context, job *models.BatchJob) error {
+	if job.ReferenceID == nil || *job.ReferenceID == "" {
+		return fmt.Errorf("empty reference_id, skipping")
+	}
+
+	lockKey := lockKeyPrefix + job.ID
+
+	acquired, err := u.distributedLock.Acquire(ctx, lockKey, lockTTL)
+	if err != nil {
+		return fmt.Errorf("distributed lock acquire: %w", err)
+	}
+	if !acquired {
+		// Another pod is already processing this job.
+		log.Printf("[usecase] SyncBatchJobStatus: job %s: lock already held, skipping", job.ID)
+		return nil
+	}
+	// On terminal states the job will no longer appear in GetActiveBatchJobs;
+	// on non-terminal states we release immediately so the next tick can retry.
+	defer u.distributedLock.Release(ctx, lockKey) //nolint:errcheck
+
+	result, err := u.provider.GetBatchJobStatus(ctx, *job.ReferenceID)
+	if err != nil {
+		return fmt.Errorf("GetBatchJobStatus: %w", err)
+	}
+
+	// Nothing changed — skip the DB write.
+	if result.Status == job.Status {
+		return nil
+	}
+
+	job.Status = result.Status
+
+	if result.Status == models.BatchJobStatusCompleted || result.Status == models.BatchJobStatusFailed {
+		now := time.Now()
+		job.FinishedTimestamp = &now
+	}
+
+	if len(result.ResultsJSON) > 0 {
+		job.ResultsJson = result.ResultsJSON
+	}
+
+	if err := u.repository.UpdateBatchJob(ctx, job); err != nil {
+		return fmt.Errorf("UpdateBatchJob: %w", err)
+	}
+
+	log.Printf("[usecase] SyncBatchJobStatus: job %s status → %s", job.ID, job.Status)
+	return nil
 }
 
 // marshalRequests encodes a slice of requests into a length-delimited proto

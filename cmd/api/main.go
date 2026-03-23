@@ -41,12 +41,18 @@ func main() {
 		log.Fatalf("database schema check failed: %v. run `make db-migrate` and restart the API", err)
 	}
 
+	redisClient, err := platformdb.NewRedis(cfg.Datastores.Redis)
+	if err != nil {
+		log.Fatalf("failed to connect to redis: %v", err)
+	}
+
 	// ── GenAI provider ──────────────────────────────────────────────────────
 	provider, err := providers.New(cfg.Providers.Gemini)
 	if err != nil {
 		log.Fatalf("failed to create provider: %v", err)
 	}
 	repo := aigatewayrepository.New(db)
+	repoLock := aigatewayrepository.NewDistributedLock(redisClient)
 
 	// ── gRPC server ─────────────────────────────────────────────────────────
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
@@ -55,7 +61,7 @@ func main() {
 	}
 
 	srv := grpc.NewServer()
-	aigatewayv1.RegisterAIGatewayServiceServer(srv, aigatewaygrpc.New(aigatewayusecase.New(provider, repo)))
+	aigatewayv1.RegisterAIGatewayServiceServer(srv, aigatewaygrpc.New(aigatewayusecase.New(provider, repo, repoLock)))
 	hellov1.RegisterHelloServiceServer(srv, hellogrpc.New(hellousecase.New()))
 
 	// Register reflection so tools like grpcurl can inspect the server.

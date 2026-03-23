@@ -29,17 +29,18 @@ func newBatchJobID() string {
 }
 
 type BatchJob struct {
-	ID                 string     `gorm:"column:id;primaryKey;not null"`
-	RequestProto       []byte     `gorm:"column:request_proto;not null"`
-	LengthData         int        `gorm:"column:length_data;not null;default:0"`
-	Status             string     `gorm:"column:status;not null;default:'pending'"`
-	ReferenceID        *string    `gorm:"column:reference_id"`
-	Provider           string     `gorm:"column:provider;not null"`
-	WebhookResultURL   *string    `gorm:"column:webhook_result_url"`
-	CreatedTimestamp   time.Time  `gorm:"column:created_timestamp;not null;default:now();type:timestamptz"`
-	SubmittedTimestamp *time.Time `gorm:"column:submitted_timestamp;type:timestamptz"`
-	FinishedTimestamp  *time.Time `gorm:"column:finished_timestamp;type:timestamptz"`
-	ResultsJson        []byte     `gorm:"column:results_json;not null"`
+	ID                         string     `gorm:"column:id;primaryKey;not null"`
+	RequestProto               []byte     `gorm:"column:request_proto;not null"`
+	LengthData                 int        `gorm:"column:length_data;not null;default:0"`
+	Status                     string     `gorm:"column:status;not null;default:'pending'"`
+	ReferenceID                *string    `gorm:"column:reference_id"`
+	Provider                   string     `gorm:"column:provider;not null"`
+	CreatedTimestamp           time.Time  `gorm:"column:created_timestamp;not null;default:now();type:timestamptz"`
+	SubmittedTimestamp         *time.Time `gorm:"column:submitted_timestamp;type:timestamptz"`
+	FinishedTimestamp          *time.Time `gorm:"column:finished_timestamp;type:timestamptz"`
+	ResultsJson                []byte     `gorm:"column:results_json;not null"`
+	WebhookResultURL           *string    `gorm:"column:webhook_result_url"`
+	SendWebhookResultTimestamp *time.Time `gorm:"column:send_webhook_result_timestamp;type:timestamptz"`
 }
 
 func (BatchJob) TableName() string {

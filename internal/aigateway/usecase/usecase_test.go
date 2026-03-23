@@ -86,6 +86,7 @@ func TestSubmitBulkChatCompletions_HappyPath(t *testing.T) {
 		Once()
 
 	repo := repomock.NewRepository(t)
+	lock := repomock.NewDistributionLock(t)
 	repo.EXPECT().
 		CreateBatchJob(mock.Anything, mock.MatchedBy(func(job *models.BatchJob) bool {
 			assert.Equal(t, models.BatchJobStatusPending, job.Status)
@@ -107,7 +108,7 @@ func TestSubmitBulkChatCompletions_HappyPath(t *testing.T) {
 		Return(nil).
 		Once()
 
-	uc := New(provider, repo)
+	uc := New(provider, repo, lock)
 	resp, err := uc.SubmitBulkChatCompletions(context.Background(), testRequests)
 	require.NoError(t, err)
 	assert.Equal(t, providerJobID, resp.GetJobId())
@@ -122,8 +123,9 @@ func TestSubmitBulkChatCompletions_ProviderError(t *testing.T) {
 
 	// Repository must not be called when the provider fails.
 	repo := repomock.NewRepository(t)
+	lock := repomock.NewDistributionLock(t)
 
-	uc := New(provider, repo)
+	uc := New(provider, repo, lock)
 	_, err := uc.SubmitBulkChatCompletions(context.Background(), testRequests)
 	require.Error(t, err)
 }
@@ -139,12 +141,13 @@ func TestSubmitBulkChatCompletions_RepositoryError(t *testing.T) {
 		Once()
 
 	repo := repomock.NewRepository(t)
+	lock := repomock.NewDistributionLock(t)
 	repo.EXPECT().
 		CreateBatchJob(mock.Anything, mock.Anything).
 		Return(errors.New("db write error")).
 		Once()
 
-	uc := New(provider, repo)
+	uc := New(provider, repo, lock)
 	_, err := uc.SubmitBulkChatCompletions(context.Background(), testRequests)
 	require.Error(t, err)
 }
