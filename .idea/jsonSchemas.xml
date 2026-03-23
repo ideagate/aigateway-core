@@ -3,11 +3,12 @@
   <component name="JsonSchemaMappingsProjectConfiguration">
     <state>
       <map>
-        <entry key="MCP Configuration">
+        <entry key="No JSON schema">
           <value>
             <SchemaInfo>
-              <option name="name" value="MCP Configuration" />
-              <option name="relativePathToSchema" value="jar://$APPLICATION_PLUGINS_DIR$/ml-llm/lib/ml-llm.jar!/schemas/mcp.json" />
+              <option name="ignoredFile" value="true" />
+              <option name="name" value="No JSON schema" />
+              <option name="relativePathToSchema" value="" />
               <option name="applicationDefined" value="true" />
               <option name="patterns">
                 <list>
@@ -16,6 +17,7 @@
                   </Item>
                 </list>
               </option>
+              <option name="isIgnoredFile" value="true" />
             </SchemaInfo>
           </value>
         </entry>

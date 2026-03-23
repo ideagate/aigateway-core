@@ -1,0 +1,17 @@
+dir: '{{.InterfaceDir}}/_mock'
+structname: '{{.InterfaceName}}'
+filename: "{{.InterfaceName}}.go"
+pkgname: mockery
+template: testify
+template-data:
+  unroll-variadic: true
+packages:
+  github.com/ideagate/aigateway-core/internal/aigateway/usecase:
+    interfaces:
+      Usecase: {}
+  github.com/ideagate/aigateway-core/internal/aigateway/providers:
+    interfaces:
+      Provider: {}
+  github.com/ideagate/aigateway-core/internal/aigateway/repository:
+    interfaces:
+      Repository: {}

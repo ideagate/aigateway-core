@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+package aigateway.v1;
+
+option go_package = "github.com/ideagate/aigateway-core/gen/aigateway/v1;aigatewayv1";
+
+service AIGatewayService {
+    rpc SubmitBulkChatCompletions(stream SubmitBulkChatCompletionsRequest) returns (SubmitBulkChatCompletionsResponse);
+    rpc GetJobStatus(GetJobStatusRequest) returns (GetJobStatusResponse);
+    rpc GetJobResults(GetJobResultsRequest) returns (stream GetJobResultsResponse);
+}
+
+message SubmitBulkChatCompletionsRequest {
+    string model = 1;// Required model name for the chat completion. This should specify which language model to use for generating the response.
+    Content content = 2; // Required content for the chat completion. This should include the conversation history and the new user input that you want the model to respond to.
+    Content system_instruction = 3; // Optional system instruction for the model. This can be used to provide additional context or guidelines for how the model should generate its response.
+    float temperature = 4; // Optional temperature setting for the model. If not provided, the default temperature will be used.
+    map<string, string> metadata = 5; // Optional metadata to include with the job. This can be used for tracking or filtering jobs later.
+    string json_schema_response = 6; // Optional JSON schema to validate the response against. If not provided, no validation will be performed.
+    string webhook_result_url = 7; // Optional URL to send the results to when the job status already in final state. If not provided, results can be retrieved using GetJobResults.
+}
+
+message GetJobResultsResponse {
+    string model = 1;
+    Content content = 2;
+    map<string, string> metadata = 3;
+}
+
+message SubmitBulkChatCompletionsResponse {
+    string job_id = 1;
+}
+
+message Content {
+    string role = 1;
+    string text = 2;
+}
+
+message GetJobStatusRequest {
+    string job_id = 1;
+}
+
+message GetJobResultsRequest {
+    string job_id = 1;
+}
+
+message GetJobStatusResponse {
+    string job_id = 1;
+    JobStatus status = 2;
+}
+
+enum JobStatus {
+    JOB_STATUS_UNSPECIFIED = 0;
+    JOB_STATUS_PENDING = 1;
+    JOB_STATUS_IN_PROGRESS = 2;
+    JOB_STATUS_COMPLETED = 3;
+    JOB_STATUS_FAILED = 4;
+    JOB_STATUS_PARTIALLY_COMPLETED = 5;
+}

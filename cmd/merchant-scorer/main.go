@@ -3,13 +3,11 @@
 //
 // Usage:
 //
-//	# Gemini Developer API (uses GOOGLE_API_KEY env var)
-//	export GOOGLE_API_KEY=your_api_key
+//	# Use config/default.yaml (or pass -config)
 //	go run ./cmd/merchant-scorer
 //
-//	# Vertex AI (uses application default credentials)
+//	# Vertex AI (can come from config or env override)
 //	export GOOGLE_CLOUD_PROJECT=your_project
-//	export GOOGLE_CLOUD_LOCATION=us-central1
 //	go run ./cmd/merchant-scorer -backend=vertexai
 package main
 
@@ -19,8 +17,8 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"os"
 
+	platformconfig "github.com/ideagate/aigateway-core/internal/platform/config"
 	"google.golang.org/genai"
 
 	"github.com/ideagate/aigateway-core/internal/scorer"
@@ -29,16 +27,21 @@ import (
 func main() {
 	backend := flag.String("backend", "gemini", "API backend to use: gemini or vertexai")
 	model := flag.String("model", scorer.DefaultModel, "Gemini model name to use for scoring")
+	configPath := flag.String("config", "config/default.yaml", "path to YAML config file")
 	flag.Parse()
 
 	ctx := context.Background()
-
-	cfg, err := buildClientConfig(*backend)
+	cfg, err := platformconfig.LoadConfig(*configPath)
 	if err != nil {
 		log.Fatalf("config error: %v", err)
 	}
 
-	s, err := scorer.New(ctx, cfg)
+	clientCfg, err := buildClientConfig(*backend, cfg)
+	if err != nil {
+		log.Fatalf("config error: %v", err)
+	}
+
+	s, err := scorer.New(ctx, clientCfg)
 	if err != nil {
 		log.Fatalf("create scorer: %v", err)
 	}
@@ -59,19 +62,19 @@ func main() {
 }
 
 // buildClientConfig creates a genai.ClientConfig for the chosen backend.
-func buildClientConfig(backend string) (*genai.ClientConfig, error) {
+func buildClientConfig(backend string, cfg *platformconfig.Config) (*genai.ClientConfig, error) {
 	switch backend {
 	case "gemini":
-		apiKey := os.Getenv("GOOGLE_API_KEY")
+		apiKey := cfg.Providers.Gemini.APIKey
 		if apiKey == "" {
-			return nil, fmt.Errorf("GOOGLE_API_KEY environment variable is not set")
+			return nil, fmt.Errorf("providers.gemini.api_key is not set")
 		}
 		return &genai.ClientConfig{APIKey: apiKey, Backend: genai.BackendGeminiAPI}, nil
 	case "vertexai":
-		project := os.Getenv("GOOGLE_CLOUD_PROJECT")
-		location := os.Getenv("GOOGLE_CLOUD_LOCATION")
+		project := cfg.Providers.VertexAI.Project
+		location := cfg.Providers.VertexAI.Location
 		if project == "" {
-			return nil, fmt.Errorf("GOOGLE_CLOUD_PROJECT environment variable is not set")
+			return nil, fmt.Errorf("providers.vertexai.project is not set")
 		}
 		if location == "" {
 			location = "us-central1"

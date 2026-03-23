@@ -1,0 +1,20 @@
+datastores:
+  postgres:
+    host: 111.111.111.111
+    port: 12345
+    username: hupla
+    password: pass
+    dbname: ai_gateway
+    sslmode: disable
+  redis:
+    host: 111.111.111.111
+    port: 12345
+    password: pass
+
+providers:
+  gemini:
+    api_key: your-gemini-api-key
+  vertexai:
+    project: your-gcp-project
+    location: us-central1
+
