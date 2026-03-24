@@ -211,8 +211,43 @@ func (u *usecase) syncJobStatus(ctx context.Context, job *models.BatchJob) error
 		return fmt.Errorf("UpdateBatchJob: %w", err)
 	}
 
+	if result.Status == models.BatchJobStatusCompleted {
+		tokenJobs := buildTokenJobs(models.TokenJobTypeBatchJob, job.ID, result.InputTokenCount, result.OutputTokenCount, result.TotalTokenCount)
+		if len(tokenJobs) > 0 {
+			if err := u.repository.UpsertTokenJobs(ctx, tokenJobs); err != nil {
+				log.Printf("[usecase] SyncBatchJobStatus: job %s: failed to upsert token jobs: %v", job.ID, err)
+			}
+		}
+	}
+
 	log.Printf("[usecase] SyncBatchJobStatus: job %s status → %s", job.ID, job.Status)
 	return nil
+}
+
+// buildTokenJobs constructs the token job records to upsert for a completed job.
+// Only token types with a non-zero count are included.
+func buildTokenJobs(jobType, jobID string, input, output, total int64) []*models.TokenJob {
+	types := []struct {
+		tokenType string
+		count     int64
+	}{
+		{models.TokenTypeInput, input},
+		{models.TokenTypeOutput, output},
+		{models.TokenTypeTotal, total},
+	}
+	var jobs []*models.TokenJob
+	for _, t := range types {
+		if t.count == 0 {
+			continue
+		}
+		jobs = append(jobs, &models.TokenJob{
+			JobType:    jobType,
+			JobID:      jobID,
+			TokenType:  t.tokenType,
+			TokenCount: t.count,
+		})
+	}
+	return jobs
 }
 
 // nullString converts a proto string field to a sql.NullString.

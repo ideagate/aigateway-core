@@ -6,6 +6,7 @@ import (
 
 	"github.com/ideagate/aigateway-core/internal/aigateway/models"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type gormRepository struct {
@@ -36,6 +37,18 @@ func (r *gormRepository) GetActiveBatchJobs(ctx context.Context) ([]*models.Batc
 
 func (r *gormRepository) UpdateBatchJob(ctx context.Context, job *models.BatchJob) error {
 	return r.db.WithContext(ctx).Save(job).Error
+}
+
+func (r *gormRepository) UpsertTokenJobs(ctx context.Context, jobs []*models.TokenJob) error {
+	if len(jobs) == 0 {
+		return nil
+	}
+	return r.db.WithContext(ctx).
+		Clauses(clause.OnConflict{
+			Columns:   []clause.Column{{Name: "job_type"}, {Name: "job_id"}, {Name: "token_type"}},
+			DoUpdates: clause.AssignmentColumns([]string{"token_count"}),
+		}).
+		Create(jobs).Error
 }
 
 func (r *gormRepository) UpsertPromptConfig(ctx context.Context, cfg *models.PromptConfig) error {

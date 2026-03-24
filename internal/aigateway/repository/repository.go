@@ -18,6 +18,10 @@ type Repository interface {
 	// UpdateBatchJob persists changes to an existing batch job row.
 	UpdateBatchJob(ctx context.Context, job *models.BatchJob) error
 
+	// UpsertTokenJobs creates or updates token count rows for a job.
+	// On primary-key conflict the token_count column is overwritten.
+	UpsertTokenJobs(ctx context.Context, jobs []*models.TokenJob) error
+
 	// UpsertPromptConfig creates or fully replaces a prompt config row.
 	UpsertPromptConfig(ctx context.Context, cfg *models.PromptConfig) error
 	// GetPromptConfig returns a prompt config by ID.
