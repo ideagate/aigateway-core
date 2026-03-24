@@ -13,14 +13,11 @@ import (
 	"time"
 
 	aigatewayv1 "github.com/ideagate/aigateway-core/gen/aigateway/v1"
-	hellov1 "github.com/ideagate/aigateway-core/gen/hello/v1"
 	aigatewaygrpc "github.com/ideagate/aigateway-core/internal/aigateway/grpcserver"
 	"github.com/ideagate/aigateway-core/internal/aigateway/models"
 	"github.com/ideagate/aigateway-core/internal/aigateway/providers"
 	aigatewayrepository "github.com/ideagate/aigateway-core/internal/aigateway/repository"
 	aigatewayusecase "github.com/ideagate/aigateway-core/internal/aigateway/usecase"
-	hellogrpc "github.com/ideagate/aigateway-core/internal/hello/grpcserver"
-	hellousecase "github.com/ideagate/aigateway-core/internal/hello/usecase"
 	platformconfig "github.com/ideagate/aigateway-core/internal/platform/config"
 	platformdb "github.com/ideagate/aigateway-core/internal/platform/db"
 	"google.golang.org/grpc"
@@ -74,7 +71,6 @@ func main() {
 	healthSrv.SetServingStatus("", grpc_health_v1.HealthCheckResponse_SERVING)
 
 	aigatewayv1.RegisterAIGatewayServiceServer(srv, aigatewaygrpc.New(aigatewayusecase.New(provider, repo, repoLock)))
-	hellov1.RegisterHelloServiceServer(srv, hellogrpc.New(hellousecase.New()))
 
 	// Register reflection so tools like grpcurl can inspect the server.
 	reflection.Register(srv)
