@@ -22,6 +22,9 @@ const (
 	AIGatewayService_SubmitBulkChatCompletions_FullMethodName = "/aigateway.v1.AIGatewayService/SubmitBulkChatCompletions"
 	AIGatewayService_GetJobStatus_FullMethodName              = "/aigateway.v1.AIGatewayService/GetJobStatus"
 	AIGatewayService_GetJobResults_FullMethodName             = "/aigateway.v1.AIGatewayService/GetJobResults"
+	AIGatewayService_UpsertPromptConfig_FullMethodName        = "/aigateway.v1.AIGatewayService/UpsertPromptConfig"
+	AIGatewayService_ListPromptConfigs_FullMethodName         = "/aigateway.v1.AIGatewayService/ListPromptConfigs"
+	AIGatewayService_DeletePromptConfig_FullMethodName        = "/aigateway.v1.AIGatewayService/DeletePromptConfig"
 )
 
 // AIGatewayServiceClient is the client API for AIGatewayService service.
@@ -31,6 +34,9 @@ type AIGatewayServiceClient interface {
 	SubmitBulkChatCompletions(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[SubmitBulkChatCompletionsRequest, SubmitBulkChatCompletionsResponse], error)
 	GetJobStatus(ctx context.Context, in *GetJobStatusRequest, opts ...grpc.CallOption) (*GetJobStatusResponse, error)
 	GetJobResults(ctx context.Context, in *GetJobResultsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[GetJobResultsResponse], error)
+	UpsertPromptConfig(ctx context.Context, in *UpsertPromptConfigRequest, opts ...grpc.CallOption) (*UpsertPromptConfigResponse, error)
+	ListPromptConfigs(ctx context.Context, in *ListPromptConfigsRequest, opts ...grpc.CallOption) (*ListPromptConfigsResponse, error)
+	DeletePromptConfig(ctx context.Context, in *DeletePromptConfigRequest, opts ...grpc.CallOption) (*DeletePromptConfigResponse, error)
 }
 
 type aIGatewayServiceClient struct {
@@ -83,6 +89,36 @@ func (c *aIGatewayServiceClient) GetJobResults(ctx context.Context, in *GetJobRe
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type AIGatewayService_GetJobResultsClient = grpc.ServerStreamingClient[GetJobResultsResponse]
 
+func (c *aIGatewayServiceClient) UpsertPromptConfig(ctx context.Context, in *UpsertPromptConfigRequest, opts ...grpc.CallOption) (*UpsertPromptConfigResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpsertPromptConfigResponse)
+	err := c.cc.Invoke(ctx, AIGatewayService_UpsertPromptConfig_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aIGatewayServiceClient) ListPromptConfigs(ctx context.Context, in *ListPromptConfigsRequest, opts ...grpc.CallOption) (*ListPromptConfigsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListPromptConfigsResponse)
+	err := c.cc.Invoke(ctx, AIGatewayService_ListPromptConfigs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aIGatewayServiceClient) DeletePromptConfig(ctx context.Context, in *DeletePromptConfigRequest, opts ...grpc.CallOption) (*DeletePromptConfigResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeletePromptConfigResponse)
+	err := c.cc.Invoke(ctx, AIGatewayService_DeletePromptConfig_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AIGatewayServiceServer is the server API for AIGatewayService service.
 // All implementations should embed UnimplementedAIGatewayServiceServer
 // for forward compatibility.
@@ -90,6 +126,9 @@ type AIGatewayServiceServer interface {
 	SubmitBulkChatCompletions(grpc.ClientStreamingServer[SubmitBulkChatCompletionsRequest, SubmitBulkChatCompletionsResponse]) error
 	GetJobStatus(context.Context, *GetJobStatusRequest) (*GetJobStatusResponse, error)
 	GetJobResults(*GetJobResultsRequest, grpc.ServerStreamingServer[GetJobResultsResponse]) error
+	UpsertPromptConfig(context.Context, *UpsertPromptConfigRequest) (*UpsertPromptConfigResponse, error)
+	ListPromptConfigs(context.Context, *ListPromptConfigsRequest) (*ListPromptConfigsResponse, error)
+	DeletePromptConfig(context.Context, *DeletePromptConfigRequest) (*DeletePromptConfigResponse, error)
 }
 
 // UnimplementedAIGatewayServiceServer should be embedded to have
@@ -107,6 +146,15 @@ func (UnimplementedAIGatewayServiceServer) GetJobStatus(context.Context, *GetJob
 }
 func (UnimplementedAIGatewayServiceServer) GetJobResults(*GetJobResultsRequest, grpc.ServerStreamingServer[GetJobResultsResponse]) error {
 	return status.Error(codes.Unimplemented, "method GetJobResults not implemented")
+}
+func (UnimplementedAIGatewayServiceServer) UpsertPromptConfig(context.Context, *UpsertPromptConfigRequest) (*UpsertPromptConfigResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpsertPromptConfig not implemented")
+}
+func (UnimplementedAIGatewayServiceServer) ListPromptConfigs(context.Context, *ListPromptConfigsRequest) (*ListPromptConfigsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListPromptConfigs not implemented")
+}
+func (UnimplementedAIGatewayServiceServer) DeletePromptConfig(context.Context, *DeletePromptConfigRequest) (*DeletePromptConfigResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeletePromptConfig not implemented")
 }
 func (UnimplementedAIGatewayServiceServer) testEmbeddedByValue() {}
 
@@ -164,6 +212,60 @@ func _AIGatewayService_GetJobResults_Handler(srv interface{}, stream grpc.Server
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type AIGatewayService_GetJobResultsServer = grpc.ServerStreamingServer[GetJobResultsResponse]
 
+func _AIGatewayService_UpsertPromptConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpsertPromptConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AIGatewayServiceServer).UpsertPromptConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AIGatewayService_UpsertPromptConfig_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AIGatewayServiceServer).UpsertPromptConfig(ctx, req.(*UpsertPromptConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AIGatewayService_ListPromptConfigs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPromptConfigsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AIGatewayServiceServer).ListPromptConfigs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AIGatewayService_ListPromptConfigs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AIGatewayServiceServer).ListPromptConfigs(ctx, req.(*ListPromptConfigsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AIGatewayService_DeletePromptConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeletePromptConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AIGatewayServiceServer).DeletePromptConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AIGatewayService_DeletePromptConfig_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AIGatewayServiceServer).DeletePromptConfig(ctx, req.(*DeletePromptConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AIGatewayService_ServiceDesc is the grpc.ServiceDesc for AIGatewayService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -174,6 +276,18 @@ var AIGatewayService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetJobStatus",
 			Handler:    _AIGatewayService_GetJobStatus_Handler,
+		},
+		{
+			MethodName: "UpsertPromptConfig",
+			Handler:    _AIGatewayService_UpsertPromptConfig_Handler,
+		},
+		{
+			MethodName: "ListPromptConfigs",
+			Handler:    _AIGatewayService_ListPromptConfigs_Handler,
+		},
+		{
+			MethodName: "DeletePromptConfig",
+			Handler:    _AIGatewayService_DeletePromptConfig_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

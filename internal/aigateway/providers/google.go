@@ -76,7 +76,8 @@ func (g *GoogleProvider) SubmitBatchJob(ctx context.Context, requests []*aigatew
 			if err := json.Unmarshal([]byte(request.GetJsonSchemaResponse()), &genAIResponseSchema); err != nil {
 				return nil, fmt.Errorf("failed to unmarshal json schema: %w", err)
 			}
-			batchRequests[i].Config.ResponseJsonSchema = genAIResponseSchema
+			batchRequests[i].Config.ResponseMIMEType = "application/json"
+			batchRequests[i].Config.ResponseSchema = &genAIResponseSchema
 		}
 
 		if request.GetMetadata() != nil {

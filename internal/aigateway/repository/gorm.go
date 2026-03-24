@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 
 	"github.com/ideagate/aigateway-core/internal/aigateway/models"
 	"gorm.io/gorm"
@@ -37,3 +38,35 @@ func (r *gormRepository) UpdateBatchJob(ctx context.Context, job *models.BatchJo
 	return r.db.WithContext(ctx).Save(job).Error
 }
 
+func (r *gormRepository) UpsertPromptConfig(ctx context.Context, cfg *models.PromptConfig) error {
+	return r.db.WithContext(ctx).Save(cfg).Error
+}
+
+func (r *gormRepository) GetPromptConfig(ctx context.Context, id string) (*models.PromptConfig, error) {
+	var cfg models.PromptConfig
+	err := r.db.WithContext(ctx).First(&cfg, "id = ?", id).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, ErrNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &cfg, nil
+}
+
+func (r *gormRepository) ListPromptConfigs(ctx context.Context) ([]*models.PromptConfig, error) {
+	var cfgs []*models.PromptConfig
+	err := r.db.WithContext(ctx).Find(&cfgs).Error
+	return cfgs, err
+}
+
+func (r *gormRepository) DeletePromptConfig(ctx context.Context, id string) error {
+	result := r.db.WithContext(ctx).Delete(&models.PromptConfig{}, "id = ?", id)
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return ErrNotFound
+	}
+	return nil
+}

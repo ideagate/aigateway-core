@@ -2,12 +2,18 @@ syntax = "proto3";
 
 package aigateway.v1;
 
+import "google/protobuf/timestamp.proto";
+
 option go_package = "github.com/ideagate/aigateway-core/gen/aigateway/v1;aigatewayv1";
 
 service AIGatewayService {
     rpc SubmitBulkChatCompletions(stream SubmitBulkChatCompletionsRequest) returns (SubmitBulkChatCompletionsResponse);
     rpc GetJobStatus(GetJobStatusRequest) returns (GetJobStatusResponse);
     rpc GetJobResults(GetJobResultsRequest) returns (stream GetJobResultsResponse);
+
+    rpc UpsertPromptConfig(UpsertPromptConfigRequest) returns (UpsertPromptConfigResponse);
+    rpc ListPromptConfigs(ListPromptConfigsRequest) returns (ListPromptConfigsResponse);
+    rpc DeletePromptConfig(DeletePromptConfigRequest) returns (DeletePromptConfigResponse);
 }
 
 message SubmitBulkChatCompletionsRequest {
@@ -18,12 +24,7 @@ message SubmitBulkChatCompletionsRequest {
     map<string, string> metadata = 5; // Optional metadata to include with the job. This can be used for tracking or filtering jobs later.
     string json_schema_response = 6; // Optional JSON schema to validate the response against. If not provided, no validation will be performed.
     string webhook_result_url = 7; // Optional URL to send the results to when the job status already in final state. If not provided, results can be retrieved using GetJobResults.
-}
-
-message GetJobResultsResponse {
-    string model = 1;
-    Content content = 2;
-    map<string, string> metadata = 3;
+    string template_id = 8; // Optional template ID to use for this job. If provided, empty request fields are filled from the template.
 }
 
 message SubmitBulkChatCompletionsResponse {
@@ -43,6 +44,12 @@ message GetJobResultsRequest {
     string job_id = 1;
 }
 
+message GetJobResultsResponse {
+    string model = 1;
+    Content content = 2;
+    map<string, string> metadata = 3;
+}
+
 message GetJobStatusResponse {
     string job_id = 1;
     JobStatus status = 2;
@@ -56,3 +63,42 @@ enum JobStatus {
     JOB_STATUS_FAILED = 4;
     JOB_STATUS_PARTIALLY_COMPLETED = 5;
 }
+
+// PromptConfig represents a reusable prompt template for bulk chat submissions.
+message PromptConfig {
+    string id = 1;
+    string description = 2;
+    string model = 3;
+    string system_instruction = 4;
+    string json_schema_response = 5;
+    float temperature = 6;
+    google.protobuf.Timestamp created_at = 7;
+    google.protobuf.Timestamp updated_at = 8;
+    map<string, string> metadata = 9;
+}
+
+message UpsertPromptConfigRequest {
+    string id = 1; // Required. Caller-supplied stable identifier.
+    string description = 2;
+    string model = 3;
+    string system_instruction = 4;
+    string json_schema_response = 5;
+    float temperature = 6;
+    map<string, string> metadata = 7;
+}
+
+message UpsertPromptConfigResponse {
+    PromptConfig prompt_config = 1;
+}
+
+message ListPromptConfigsRequest {}
+
+message ListPromptConfigsResponse {
+    repeated PromptConfig prompt_configs = 1;
+}
+
+message DeletePromptConfigRequest {
+    string id = 1;
+}
+
+message DeletePromptConfigResponse {}

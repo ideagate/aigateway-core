@@ -38,6 +38,74 @@ func (_m *Usecase) EXPECT() *Usecase_Expecter {
 	return &Usecase_Expecter{mock: &_m.Mock}
 }
 
+// DeletePromptConfig provides a mock function for the type Usecase
+func (_mock *Usecase) DeletePromptConfig(context1 context.Context, deletePromptConfigRequest *aigatewayv1.DeletePromptConfigRequest) (*aigatewayv1.DeletePromptConfigResponse, error) {
+	ret := _mock.Called(context1, deletePromptConfigRequest)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeletePromptConfig")
+	}
+
+	var r0 *aigatewayv1.DeletePromptConfigResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *aigatewayv1.DeletePromptConfigRequest) (*aigatewayv1.DeletePromptConfigResponse, error)); ok {
+		return returnFunc(context1, deletePromptConfigRequest)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *aigatewayv1.DeletePromptConfigRequest) *aigatewayv1.DeletePromptConfigResponse); ok {
+		r0 = returnFunc(context1, deletePromptConfigRequest)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*aigatewayv1.DeletePromptConfigResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *aigatewayv1.DeletePromptConfigRequest) error); ok {
+		r1 = returnFunc(context1, deletePromptConfigRequest)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// Usecase_DeletePromptConfig_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeletePromptConfig'
+type Usecase_DeletePromptConfig_Call struct {
+	*mock.Call
+}
+
+// DeletePromptConfig is a helper method to define mock.On call
+//   - context1 context.Context
+//   - deletePromptConfigRequest *aigatewayv1.DeletePromptConfigRequest
+func (_e *Usecase_Expecter) DeletePromptConfig(context1 interface{}, deletePromptConfigRequest interface{}) *Usecase_DeletePromptConfig_Call {
+	return &Usecase_DeletePromptConfig_Call{Call: _e.mock.On("DeletePromptConfig", context1, deletePromptConfigRequest)}
+}
+
+func (_c *Usecase_DeletePromptConfig_Call) Run(run func(context1 context.Context, deletePromptConfigRequest *aigatewayv1.DeletePromptConfigRequest)) *Usecase_DeletePromptConfig_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *aigatewayv1.DeletePromptConfigRequest
+		if args[1] != nil {
+			arg1 = args[1].(*aigatewayv1.DeletePromptConfigRequest)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *Usecase_DeletePromptConfig_Call) Return(deletePromptConfigResponse *aigatewayv1.DeletePromptConfigResponse, err error) *Usecase_DeletePromptConfig_Call {
+	_c.Call.Return(deletePromptConfigResponse, err)
+	return _c
+}
+
+func (_c *Usecase_DeletePromptConfig_Call) RunAndReturn(run func(context1 context.Context, deletePromptConfigRequest *aigatewayv1.DeletePromptConfigRequest) (*aigatewayv1.DeletePromptConfigResponse, error)) *Usecase_DeletePromptConfig_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetJobResults provides a mock function for the type Usecase
 func (_mock *Usecase) GetJobResults(context1 context.Context, getJobResultsRequest *aigatewayv1.GetJobResultsRequest) ([]*aigatewayv1.GetJobResultsResponse, error) {
 	ret := _mock.Called(context1, getJobResultsRequest)
@@ -174,6 +242,74 @@ func (_c *Usecase_GetJobStatus_Call) RunAndReturn(run func(context1 context.Cont
 	return _c
 }
 
+// ListPromptConfigs provides a mock function for the type Usecase
+func (_mock *Usecase) ListPromptConfigs(context1 context.Context, listPromptConfigsRequest *aigatewayv1.ListPromptConfigsRequest) (*aigatewayv1.ListPromptConfigsResponse, error) {
+	ret := _mock.Called(context1, listPromptConfigsRequest)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListPromptConfigs")
+	}
+
+	var r0 *aigatewayv1.ListPromptConfigsResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *aigatewayv1.ListPromptConfigsRequest) (*aigatewayv1.ListPromptConfigsResponse, error)); ok {
+		return returnFunc(context1, listPromptConfigsRequest)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *aigatewayv1.ListPromptConfigsRequest) *aigatewayv1.ListPromptConfigsResponse); ok {
+		r0 = returnFunc(context1, listPromptConfigsRequest)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*aigatewayv1.ListPromptConfigsResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *aigatewayv1.ListPromptConfigsRequest) error); ok {
+		r1 = returnFunc(context1, listPromptConfigsRequest)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// Usecase_ListPromptConfigs_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListPromptConfigs'
+type Usecase_ListPromptConfigs_Call struct {
+	*mock.Call
+}
+
+// ListPromptConfigs is a helper method to define mock.On call
+//   - context1 context.Context
+//   - listPromptConfigsRequest *aigatewayv1.ListPromptConfigsRequest
+func (_e *Usecase_Expecter) ListPromptConfigs(context1 interface{}, listPromptConfigsRequest interface{}) *Usecase_ListPromptConfigs_Call {
+	return &Usecase_ListPromptConfigs_Call{Call: _e.mock.On("ListPromptConfigs", context1, listPromptConfigsRequest)}
+}
+
+func (_c *Usecase_ListPromptConfigs_Call) Run(run func(context1 context.Context, listPromptConfigsRequest *aigatewayv1.ListPromptConfigsRequest)) *Usecase_ListPromptConfigs_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *aigatewayv1.ListPromptConfigsRequest
+		if args[1] != nil {
+			arg1 = args[1].(*aigatewayv1.ListPromptConfigsRequest)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *Usecase_ListPromptConfigs_Call) Return(listPromptConfigsResponse *aigatewayv1.ListPromptConfigsResponse, err error) *Usecase_ListPromptConfigs_Call {
+	_c.Call.Return(listPromptConfigsResponse, err)
+	return _c
+}
+
+func (_c *Usecase_ListPromptConfigs_Call) RunAndReturn(run func(context1 context.Context, listPromptConfigsRequest *aigatewayv1.ListPromptConfigsRequest) (*aigatewayv1.ListPromptConfigsResponse, error)) *Usecase_ListPromptConfigs_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SubmitBulkChatCompletions provides a mock function for the type Usecase
 func (_mock *Usecase) SubmitBulkChatCompletions(context1 context.Context, submitBulkChatCompletionsRequests []*aigatewayv1.SubmitBulkChatCompletionsRequest) (*aigatewayv1.SubmitBulkChatCompletionsResponse, error) {
 	ret := _mock.Called(context1, submitBulkChatCompletionsRequests)
@@ -289,6 +425,74 @@ func (_c *Usecase_SyncBatchJobStatus_Call) Return(err error) *Usecase_SyncBatchJ
 }
 
 func (_c *Usecase_SyncBatchJobStatus_Call) RunAndReturn(run func(context1 context.Context) error) *Usecase_SyncBatchJobStatus_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpsertPromptConfig provides a mock function for the type Usecase
+func (_mock *Usecase) UpsertPromptConfig(context1 context.Context, upsertPromptConfigRequest *aigatewayv1.UpsertPromptConfigRequest) (*aigatewayv1.UpsertPromptConfigResponse, error) {
+	ret := _mock.Called(context1, upsertPromptConfigRequest)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpsertPromptConfig")
+	}
+
+	var r0 *aigatewayv1.UpsertPromptConfigResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *aigatewayv1.UpsertPromptConfigRequest) (*aigatewayv1.UpsertPromptConfigResponse, error)); ok {
+		return returnFunc(context1, upsertPromptConfigRequest)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *aigatewayv1.UpsertPromptConfigRequest) *aigatewayv1.UpsertPromptConfigResponse); ok {
+		r0 = returnFunc(context1, upsertPromptConfigRequest)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*aigatewayv1.UpsertPromptConfigResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *aigatewayv1.UpsertPromptConfigRequest) error); ok {
+		r1 = returnFunc(context1, upsertPromptConfigRequest)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// Usecase_UpsertPromptConfig_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpsertPromptConfig'
+type Usecase_UpsertPromptConfig_Call struct {
+	*mock.Call
+}
+
+// UpsertPromptConfig is a helper method to define mock.On call
+//   - context1 context.Context
+//   - upsertPromptConfigRequest *aigatewayv1.UpsertPromptConfigRequest
+func (_e *Usecase_Expecter) UpsertPromptConfig(context1 interface{}, upsertPromptConfigRequest interface{}) *Usecase_UpsertPromptConfig_Call {
+	return &Usecase_UpsertPromptConfig_Call{Call: _e.mock.On("UpsertPromptConfig", context1, upsertPromptConfigRequest)}
+}
+
+func (_c *Usecase_UpsertPromptConfig_Call) Run(run func(context1 context.Context, upsertPromptConfigRequest *aigatewayv1.UpsertPromptConfigRequest)) *Usecase_UpsertPromptConfig_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *aigatewayv1.UpsertPromptConfigRequest
+		if args[1] != nil {
+			arg1 = args[1].(*aigatewayv1.UpsertPromptConfigRequest)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *Usecase_UpsertPromptConfig_Call) Return(upsertPromptConfigResponse *aigatewayv1.UpsertPromptConfigResponse, err error) *Usecase_UpsertPromptConfig_Call {
+	_c.Call.Return(upsertPromptConfigResponse, err)
+	return _c
+}
+
+func (_c *Usecase_UpsertPromptConfig_Call) RunAndReturn(run func(context1 context.Context, upsertPromptConfigRequest *aigatewayv1.UpsertPromptConfigRequest) (*aigatewayv1.UpsertPromptConfigResponse, error)) *Usecase_UpsertPromptConfig_Call {
 	_c.Call.Return(run)
 	return _c
 }

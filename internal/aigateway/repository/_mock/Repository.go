@@ -95,6 +95,63 @@ func (_c *Repository_CreateBatchJob_Call) RunAndReturn(run func(ctx context.Cont
 	return _c
 }
 
+// DeletePromptConfig provides a mock function for the type Repository
+func (_mock *Repository) DeletePromptConfig(ctx context.Context, id string) error {
+	ret := _mock.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeletePromptConfig")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = returnFunc(ctx, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// Repository_DeletePromptConfig_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeletePromptConfig'
+type Repository_DeletePromptConfig_Call struct {
+	*mock.Call
+}
+
+// DeletePromptConfig is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *Repository_Expecter) DeletePromptConfig(ctx interface{}, id interface{}) *Repository_DeletePromptConfig_Call {
+	return &Repository_DeletePromptConfig_Call{Call: _e.mock.On("DeletePromptConfig", ctx, id)}
+}
+
+func (_c *Repository_DeletePromptConfig_Call) Run(run func(ctx context.Context, id string)) *Repository_DeletePromptConfig_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *Repository_DeletePromptConfig_Call) Return(err error) *Repository_DeletePromptConfig_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *Repository_DeletePromptConfig_Call) RunAndReturn(run func(ctx context.Context, id string) error) *Repository_DeletePromptConfig_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetActiveBatchJobs provides a mock function for the type Repository
 func (_mock *Repository) GetActiveBatchJobs(ctx context.Context) ([]*models.BatchJob, error) {
 	ret := _mock.Called(ctx)
@@ -157,6 +214,136 @@ func (_c *Repository_GetActiveBatchJobs_Call) RunAndReturn(run func(ctx context.
 	return _c
 }
 
+// GetPromptConfig provides a mock function for the type Repository
+func (_mock *Repository) GetPromptConfig(ctx context.Context, id string) (*models.PromptConfig, error) {
+	ret := _mock.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPromptConfig")
+	}
+
+	var r0 *models.PromptConfig
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*models.PromptConfig, error)); ok {
+		return returnFunc(ctx, id)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *models.PromptConfig); ok {
+		r0 = returnFunc(ctx, id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.PromptConfig)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// Repository_GetPromptConfig_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetPromptConfig'
+type Repository_GetPromptConfig_Call struct {
+	*mock.Call
+}
+
+// GetPromptConfig is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *Repository_Expecter) GetPromptConfig(ctx interface{}, id interface{}) *Repository_GetPromptConfig_Call {
+	return &Repository_GetPromptConfig_Call{Call: _e.mock.On("GetPromptConfig", ctx, id)}
+}
+
+func (_c *Repository_GetPromptConfig_Call) Run(run func(ctx context.Context, id string)) *Repository_GetPromptConfig_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *Repository_GetPromptConfig_Call) Return(promptConfig *models.PromptConfig, err error) *Repository_GetPromptConfig_Call {
+	_c.Call.Return(promptConfig, err)
+	return _c
+}
+
+func (_c *Repository_GetPromptConfig_Call) RunAndReturn(run func(ctx context.Context, id string) (*models.PromptConfig, error)) *Repository_GetPromptConfig_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListPromptConfigs provides a mock function for the type Repository
+func (_mock *Repository) ListPromptConfigs(ctx context.Context) ([]*models.PromptConfig, error) {
+	ret := _mock.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListPromptConfigs")
+	}
+
+	var r0 []*models.PromptConfig
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context) ([]*models.PromptConfig, error)); ok {
+		return returnFunc(ctx)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context) []*models.PromptConfig); ok {
+		r0 = returnFunc(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*models.PromptConfig)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = returnFunc(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// Repository_ListPromptConfigs_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListPromptConfigs'
+type Repository_ListPromptConfigs_Call struct {
+	*mock.Call
+}
+
+// ListPromptConfigs is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *Repository_Expecter) ListPromptConfigs(ctx interface{}) *Repository_ListPromptConfigs_Call {
+	return &Repository_ListPromptConfigs_Call{Call: _e.mock.On("ListPromptConfigs", ctx)}
+}
+
+func (_c *Repository_ListPromptConfigs_Call) Run(run func(ctx context.Context)) *Repository_ListPromptConfigs_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *Repository_ListPromptConfigs_Call) Return(promptConfigs []*models.PromptConfig, err error) *Repository_ListPromptConfigs_Call {
+	_c.Call.Return(promptConfigs, err)
+	return _c
+}
+
+func (_c *Repository_ListPromptConfigs_Call) RunAndReturn(run func(ctx context.Context) ([]*models.PromptConfig, error)) *Repository_ListPromptConfigs_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateBatchJob provides a mock function for the type Repository
 func (_mock *Repository) UpdateBatchJob(ctx context.Context, job *models.BatchJob) error {
 	ret := _mock.Called(ctx, job)
@@ -210,6 +397,63 @@ func (_c *Repository_UpdateBatchJob_Call) Return(err error) *Repository_UpdateBa
 }
 
 func (_c *Repository_UpdateBatchJob_Call) RunAndReturn(run func(ctx context.Context, job *models.BatchJob) error) *Repository_UpdateBatchJob_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpsertPromptConfig provides a mock function for the type Repository
+func (_mock *Repository) UpsertPromptConfig(ctx context.Context, cfg *models.PromptConfig) error {
+	ret := _mock.Called(ctx, cfg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpsertPromptConfig")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.PromptConfig) error); ok {
+		r0 = returnFunc(ctx, cfg)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// Repository_UpsertPromptConfig_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpsertPromptConfig'
+type Repository_UpsertPromptConfig_Call struct {
+	*mock.Call
+}
+
+// UpsertPromptConfig is a helper method to define mock.On call
+//   - ctx context.Context
+//   - cfg *models.PromptConfig
+func (_e *Repository_Expecter) UpsertPromptConfig(ctx interface{}, cfg interface{}) *Repository_UpsertPromptConfig_Call {
+	return &Repository_UpsertPromptConfig_Call{Call: _e.mock.On("UpsertPromptConfig", ctx, cfg)}
+}
+
+func (_c *Repository_UpsertPromptConfig_Call) Run(run func(ctx context.Context, cfg *models.PromptConfig)) *Repository_UpsertPromptConfig_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *models.PromptConfig
+		if args[1] != nil {
+			arg1 = args[1].(*models.PromptConfig)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *Repository_UpsertPromptConfig_Call) Return(err error) *Repository_UpsertPromptConfig_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *Repository_UpsertPromptConfig_Call) RunAndReturn(run func(ctx context.Context, cfg *models.PromptConfig) error) *Repository_UpsertPromptConfig_Call {
 	_c.Call.Return(run)
 	return _c
 }

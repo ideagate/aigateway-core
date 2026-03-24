@@ -3,7 +3,10 @@ package usecase
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"encoding/binary"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -12,7 +15,10 @@ import (
 	"github.com/ideagate/aigateway-core/internal/aigateway/models"
 	"github.com/ideagate/aigateway-core/internal/aigateway/providers"
 	"github.com/ideagate/aigateway-core/internal/aigateway/repository"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 const (
@@ -29,6 +35,10 @@ type Usecase interface {
 	GetJobStatus(context.Context, *aigatewayv1.GetJobStatusRequest) (*aigatewayv1.GetJobStatusResponse, error)
 	GetJobResults(context.Context, *aigatewayv1.GetJobResultsRequest) ([]*aigatewayv1.GetJobResultsResponse, error)
 	SyncBatchJobStatus(context.Context) error
+
+	UpsertPromptConfig(context.Context, *aigatewayv1.UpsertPromptConfigRequest) (*aigatewayv1.UpsertPromptConfigResponse, error)
+	ListPromptConfigs(context.Context, *aigatewayv1.ListPromptConfigsRequest) (*aigatewayv1.ListPromptConfigsResponse, error)
+	DeletePromptConfig(context.Context, *aigatewayv1.DeletePromptConfigRequest) (*aigatewayv1.DeletePromptConfigResponse, error)
 }
 
 type usecase struct {
@@ -49,14 +59,19 @@ func New(provider providers.Provider, repo repository.Repository, repoLock repos
 // SubmitBulkChatCompletions submits a batch job via the provider, then persists
 // a pending BatchJob row in the database.
 func (u *usecase) SubmitBulkChatCompletions(ctx context.Context, requests []*aigatewayv1.SubmitBulkChatCompletionsRequest) (*aigatewayv1.SubmitBulkChatCompletionsResponse, error) {
+	resolvedRequests, err := u.resolveSubmitRequests(ctx, requests)
+	if err != nil {
+		return nil, err
+	}
+
 	// Serialize requests to proto binary bytes for storage.
-	requestProto, err := marshalRequests(requests)
+	requestProto, err := marshalRequests(resolvedRequests)
 	if err != nil {
 		return nil, fmt.Errorf("failed to serialize requests: %w", err)
 	}
 
 	// Call the provider to submit the batch job.
-	resp, err := u.provider.SubmitBatchJob(ctx, requests)
+	resp, err := u.provider.SubmitBatchJob(ctx, resolvedRequests)
 	if err != nil {
 		return nil, fmt.Errorf("failed to submit batch job: %w", err)
 	}
@@ -80,6 +95,42 @@ func (u *usecase) SubmitBulkChatCompletions(ctx context.Context, requests []*aig
 	}
 
 	return resp, nil
+}
+
+func (u *usecase) resolveSubmitRequests(ctx context.Context, requests []*aigatewayv1.SubmitBulkChatCompletionsRequest) ([]*aigatewayv1.SubmitBulkChatCompletionsRequest, error) {
+	resolved := make([]*aigatewayv1.SubmitBulkChatCompletionsRequest, len(requests))
+	promptConfigs := make(map[string]*models.PromptConfig)
+
+	for i, req := range requests {
+		cloned, ok := proto.Clone(req).(*aigatewayv1.SubmitBulkChatCompletionsRequest)
+		if !ok {
+			return nil, fmt.Errorf("request %d: failed to clone request", i)
+		}
+
+		templateID := cloned.GetTemplateId()
+		if templateID == "" {
+			resolved[i] = cloned
+			continue
+		}
+
+		cfg, ok := promptConfigs[templateID]
+		if !ok {
+			var err error
+			cfg, err = u.repository.GetPromptConfig(ctx, templateID)
+			if errors.Is(err, repository.ErrNotFound) {
+				return nil, status.Errorf(codes.NotFound, "prompt config %q not found", templateID)
+			}
+			if err != nil {
+				return nil, fmt.Errorf("GetPromptConfig %q: %w", templateID, err)
+			}
+			promptConfigs[templateID] = cfg
+		}
+
+		applyPromptConfigDefaults(cloned, cfg)
+		resolved[i] = cloned
+	}
+
+	return resolved, nil
 }
 
 func (u *usecase) GetJobStatus(ctx context.Context, req *aigatewayv1.GetJobStatusRequest) (*aigatewayv1.GetJobStatusResponse, error) {
@@ -162,6 +213,187 @@ func (u *usecase) syncJobStatus(ctx context.Context, job *models.BatchJob) error
 
 	log.Printf("[usecase] SyncBatchJobStatus: job %s status → %s", job.ID, job.Status)
 	return nil
+}
+
+// nullString converts a proto string field to a sql.NullString.
+// An empty string is treated as NULL.
+func nullString(s string) sql.NullString {
+	if s == "" {
+		return sql.NullString{}
+	}
+	return sql.NullString{String: s, Valid: true}
+}
+
+// nullFloat64 converts a proto float field to a sql.NullFloat64.
+// A zero value is treated as NULL.
+func nullFloat64(f float32) sql.NullFloat64 {
+	if f == 0 {
+		return sql.NullFloat64{}
+	}
+	return sql.NullFloat64{Float64: float64(f), Valid: true}
+}
+
+// promptConfigToProto maps a models.PromptConfig to its proto representation.
+func promptConfigToProto(m *models.PromptConfig) *aigatewayv1.PromptConfig {
+	metadata, err := decodeMetadata(m.Metadata)
+	if err != nil {
+		log.Printf("[usecase] promptConfigToProto: prompt config %s has invalid metadata: %v", m.ID, err)
+	}
+
+	p := &aigatewayv1.PromptConfig{
+		Id:        m.ID,
+		CreatedAt: timestamppb.New(m.CreatedAt),
+		UpdatedAt: timestamppb.New(m.UpdatedAt),
+		Metadata:  metadata,
+	}
+	if m.Description.Valid {
+		p.Description = m.Description.String
+	}
+	if m.Model.Valid {
+		p.Model = m.Model.String
+	}
+	if m.SystemInstruction.Valid {
+		p.SystemInstruction = m.SystemInstruction.String
+	}
+	if m.JSONSchemaResponse.Valid {
+		p.JsonSchemaResponse = m.JSONSchemaResponse.String
+	}
+	if m.Temperature.Valid {
+		p.Temperature = float32(m.Temperature.Float64)
+	}
+	return p
+}
+
+// UpsertPromptConfig creates or fully replaces a prompt config record.
+func (u *usecase) UpsertPromptConfig(ctx context.Context, req *aigatewayv1.UpsertPromptConfigRequest) (*aigatewayv1.UpsertPromptConfigResponse, error) {
+	if req.GetId() == "" {
+		return nil, status.Error(codes.InvalidArgument, "id is required")
+	}
+
+	cfg := &models.PromptConfig{
+		ID:                 req.GetId(),
+		Description:        nullString(req.GetDescription()),
+		Model:              nullString(req.GetModel()),
+		SystemInstruction:  nullString(req.GetSystemInstruction()),
+		JSONSchemaResponse: nullString(req.GetJsonSchemaResponse()),
+		Temperature:        nullFloat64(req.GetTemperature()),
+		Metadata:           encodeMetadata(req.GetMetadata()),
+	}
+
+	if err := u.repository.UpsertPromptConfig(ctx, cfg); err != nil {
+		return nil, fmt.Errorf("UpsertPromptConfig: %w", err)
+	}
+
+	return &aigatewayv1.UpsertPromptConfigResponse{
+		PromptConfig: promptConfigToProto(cfg),
+	}, nil
+}
+
+// ListPromptConfigs returns all prompt config records (unfiltered).
+func (u *usecase) ListPromptConfigs(ctx context.Context, _ *aigatewayv1.ListPromptConfigsRequest) (*aigatewayv1.ListPromptConfigsResponse, error) {
+	cfgs, err := u.repository.ListPromptConfigs(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("ListPromptConfigs: %w", err)
+	}
+
+	protos := make([]*aigatewayv1.PromptConfig, 0, len(cfgs))
+	for _, cfg := range cfgs {
+		protos = append(protos, promptConfigToProto(cfg))
+	}
+
+	return &aigatewayv1.ListPromptConfigsResponse{PromptConfigs: protos}, nil
+}
+
+// DeletePromptConfig removes a prompt config by ID.
+// Returns codes.NotFound when no record with that ID exists.
+func (u *usecase) DeletePromptConfig(ctx context.Context, req *aigatewayv1.DeletePromptConfigRequest) (*aigatewayv1.DeletePromptConfigResponse, error) {
+	if req.GetId() == "" {
+		return nil, status.Error(codes.InvalidArgument, "id is required")
+	}
+
+	err := u.repository.DeletePromptConfig(ctx, req.GetId())
+	if errors.Is(err, repository.ErrNotFound) {
+		return nil, status.Errorf(codes.NotFound, "prompt config %q not found", req.GetId())
+	}
+	if err != nil {
+		return nil, fmt.Errorf("DeletePromptConfig: %w", err)
+	}
+
+	return &aigatewayv1.DeletePromptConfigResponse{}, nil
+}
+
+func applyPromptConfigDefaults(req *aigatewayv1.SubmitBulkChatCompletionsRequest, cfg *models.PromptConfig) {
+	if req.GetModel() == "" && cfg.Model.Valid {
+		req.Model = cfg.Model.String
+	}
+
+	if req.GetSystemInstruction().GetText() == "" && cfg.SystemInstruction.Valid {
+		if req.SystemInstruction == nil {
+			req.SystemInstruction = &aigatewayv1.Content{}
+		}
+		req.SystemInstruction.Text = cfg.SystemInstruction.String
+	}
+
+	if req.GetTemperature() == 0 && cfg.Temperature.Valid {
+		req.Temperature = float32(cfg.Temperature.Float64)
+	}
+
+	if req.GetJsonSchemaResponse() == "" && cfg.JSONSchemaResponse.Valid {
+		req.JsonSchemaResponse = cfg.JSONSchemaResponse.String
+	}
+
+	configMetadata, err := decodeMetadata(cfg.Metadata)
+	if err != nil {
+		log.Printf("[usecase] applyPromptConfigDefaults: prompt config %s has invalid metadata: %v", cfg.ID, err)
+		configMetadata = nil
+	}
+
+	mergedMetadata := mergeMetadata(configMetadata, req.GetMetadata())
+	if len(mergedMetadata) > 0 {
+		req.Metadata = mergedMetadata
+	} else {
+		req.Metadata = nil
+	}
+}
+
+func mergeMetadata(base, override map[string]string) map[string]string {
+	if len(base) == 0 && len(override) == 0 {
+		return nil
+	}
+
+	merged := make(map[string]string, len(base)+len(override))
+	for key, value := range base {
+		merged[key] = value
+	}
+	for key, value := range override {
+		merged[key] = value
+	}
+	return merged
+}
+
+func encodeMetadata(metadata map[string]string) []byte {
+	if len(metadata) == 0 {
+		return nil
+	}
+
+	encoded, err := json.Marshal(metadata)
+	if err != nil {
+		log.Printf("[usecase] encodeMetadata: failed to encode metadata: %v", err)
+		return nil
+	}
+	return encoded
+}
+
+func decodeMetadata(raw []byte) (map[string]string, error) {
+	if len(raw) == 0 {
+		return nil, nil
+	}
+
+	var metadata map[string]string
+	if err := json.Unmarshal(raw, &metadata); err != nil {
+		return nil, err
+	}
+	return metadata, nil
 }
 
 // marshalRequests encodes a slice of requests into a length-delimited proto

@@ -3,6 +3,7 @@ package usecase
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"encoding/binary"
 	"errors"
 	"io"
@@ -11,10 +12,13 @@ import (
 	aigatewayv1 "github.com/ideagate/aigateway-core/gen/aigateway/v1"
 	"github.com/ideagate/aigateway-core/internal/aigateway/models"
 	providermock "github.com/ideagate/aigateway-core/internal/aigateway/providers/_mock"
+	"github.com/ideagate/aigateway-core/internal/aigateway/repository"
 	repomock "github.com/ideagate/aigateway-core/internal/aigateway/repository/_mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -150,4 +154,211 @@ func TestSubmitBulkChatCompletions_RepositoryError(t *testing.T) {
 	uc := New(provider, repo, lock)
 	_, err := uc.SubmitBulkChatCompletions(context.Background(), testRequests)
 	require.Error(t, err)
+}
+
+func TestSubmitBulkChatCompletions_FillsEmptyFieldsFromTemplate(t *testing.T) {
+	const providerJobID = "prov-job-template-1"
+
+	requests := []*aigatewayv1.SubmitBulkChatCompletionsRequest{
+		{
+			Content:    &aigatewayv1.Content{Role: "user", Text: "hello"},
+			Metadata:   map[string]string{"request_id": "r1", "shared": "request"},
+			TemplateId: "tmpl-1",
+		},
+	}
+
+	provider := providermock.NewProvider(t)
+	provider.EXPECT().Name().Return("google")
+	provider.EXPECT().
+		SubmitBatchJob(mock.Anything, mock.MatchedBy(func(reqs []*aigatewayv1.SubmitBulkChatCompletionsRequest) bool {
+			require.Len(t, reqs, 1)
+			req := reqs[0]
+			assert.Equal(t, "gemini-2.5-flash", req.GetModel())
+			assert.Equal(t, "config instruction", req.GetSystemInstruction().GetText())
+			assert.InDelta(t, 0.7, req.GetTemperature(), 0.0001)
+			assert.Equal(t, `{"type":"object"}`, req.GetJsonSchemaResponse())
+			assert.Equal(t, map[string]string{
+				"config_only": "yes",
+				"request_id":  "r1",
+				"shared":      "request",
+			}, req.GetMetadata())
+			return true
+		})).
+		Return(&aigatewayv1.SubmitBulkChatCompletionsResponse{JobId: providerJobID}, nil).
+		Once()
+
+	repo := repomock.NewRepository(t)
+	lock := repomock.NewDistributionLock(t)
+	repo.EXPECT().
+		GetPromptConfig(mock.Anything, "tmpl-1").
+		Return(&models.PromptConfig{
+			ID:                 "tmpl-1",
+			Model:              sql.NullString{String: "gemini-2.5-flash", Valid: true},
+			SystemInstruction:  sql.NullString{String: "config instruction", Valid: true},
+			Temperature:        sql.NullFloat64{Float64: 0.7, Valid: true},
+			JSONSchemaResponse: sql.NullString{String: `{"type":"object"}`, Valid: true},
+			Metadata:           encodeMetadata(map[string]string{"config_only": "yes", "shared": "config"}),
+		}, nil).
+		Once()
+	repo.EXPECT().
+		CreateBatchJob(mock.Anything, mock.MatchedBy(func(job *models.BatchJob) bool {
+			decoded := decodeRequests(t, job.RequestProto)
+			require.Len(t, decoded, 1)
+			assert.Equal(t, "gemini-2.5-flash", decoded[0].GetModel())
+			assert.Equal(t, "config instruction", decoded[0].GetSystemInstruction().GetText())
+			assert.InDelta(t, 0.7, decoded[0].GetTemperature(), 0.0001)
+			assert.Equal(t, `{"type":"object"}`, decoded[0].GetJsonSchemaResponse())
+			assert.Equal(t, map[string]string{
+				"config_only": "yes",
+				"request_id":  "r1",
+				"shared":      "request",
+			}, decoded[0].GetMetadata())
+			return true
+		})).
+		Return(nil).
+		Once()
+
+	uc := New(provider, repo, lock)
+	resp, err := uc.SubmitBulkChatCompletions(context.Background(), requests)
+	require.NoError(t, err)
+	assert.Equal(t, providerJobID, resp.GetJobId())
+
+	assert.Empty(t, requests[0].GetModel())
+	assert.Empty(t, requests[0].GetSystemInstruction().GetText())
+	assert.Zero(t, requests[0].GetTemperature())
+	assert.Empty(t, requests[0].GetJsonSchemaResponse())
+	assert.Equal(t, map[string]string{"request_id": "r1", "shared": "request"}, requests[0].GetMetadata())
+}
+
+func TestSubmitBulkChatCompletions_DoesNotOverrideNonEmptyFields(t *testing.T) {
+	const providerJobID = "prov-job-template-2"
+
+	requests := []*aigatewayv1.SubmitBulkChatCompletionsRequest{
+		{
+			Model:              "request-model",
+			Content:            &aigatewayv1.Content{Role: "user", Text: "hello"},
+			SystemInstruction:  &aigatewayv1.Content{Role: "system", Text: "request instruction"},
+			Temperature:        0.2,
+			JsonSchemaResponse: `{"type":"array"}`,
+			Metadata:           map[string]string{"shared": "request", "request_only": "yes"},
+			TemplateId:         "tmpl-1",
+		},
+	}
+
+	provider := providermock.NewProvider(t)
+	provider.EXPECT().Name().Return("google")
+	provider.EXPECT().
+		SubmitBatchJob(mock.Anything, mock.MatchedBy(func(reqs []*aigatewayv1.SubmitBulkChatCompletionsRequest) bool {
+			require.Len(t, reqs, 1)
+			req := reqs[0]
+			assert.Equal(t, "request-model", req.GetModel())
+			assert.Equal(t, "request instruction", req.GetSystemInstruction().GetText())
+			assert.InDelta(t, 0.2, req.GetTemperature(), 0.0001)
+			assert.Equal(t, `{"type":"array"}`, req.GetJsonSchemaResponse())
+			assert.Equal(t, map[string]string{
+				"config_only":  "yes",
+				"request_only": "yes",
+				"shared":       "request",
+			}, req.GetMetadata())
+			return true
+		})).
+		Return(&aigatewayv1.SubmitBulkChatCompletionsResponse{JobId: providerJobID}, nil).
+		Once()
+
+	repo := repomock.NewRepository(t)
+	lock := repomock.NewDistributionLock(t)
+	repo.EXPECT().
+		GetPromptConfig(mock.Anything, "tmpl-1").
+		Return(&models.PromptConfig{
+			ID:                 "tmpl-1",
+			Model:              sql.NullString{String: "config-model", Valid: true},
+			SystemInstruction:  sql.NullString{String: "config instruction", Valid: true},
+			Temperature:        sql.NullFloat64{Float64: 0.7, Valid: true},
+			JSONSchemaResponse: sql.NullString{String: `{"type":"object"}`, Valid: true},
+			Metadata:           encodeMetadata(map[string]string{"config_only": "yes", "shared": "config"}),
+		}, nil).
+		Once()
+	repo.EXPECT().CreateBatchJob(mock.Anything, mock.Anything).Return(nil).Once()
+
+	uc := New(provider, repo, lock)
+	resp, err := uc.SubmitBulkChatCompletions(context.Background(), requests)
+	require.NoError(t, err)
+	assert.Equal(t, providerJobID, resp.GetJobId())
+}
+
+func TestSubmitBulkChatCompletions_ReusesPromptConfigLookup(t *testing.T) {
+	const providerJobID = "prov-job-template-3"
+
+	requests := []*aigatewayv1.SubmitBulkChatCompletionsRequest{
+		{Content: &aigatewayv1.Content{Role: "user", Text: "hello"}, TemplateId: "tmpl-1"},
+		{Content: &aigatewayv1.Content{Role: "user", Text: "world"}, TemplateId: "tmpl-1"},
+	}
+
+	provider := providermock.NewProvider(t)
+	provider.EXPECT().Name().Return("google")
+	provider.EXPECT().
+		SubmitBatchJob(mock.Anything, mock.MatchedBy(func(reqs []*aigatewayv1.SubmitBulkChatCompletionsRequest) bool {
+			require.Len(t, reqs, 2)
+			assert.Equal(t, "config-model", reqs[0].GetModel())
+			assert.Equal(t, "config-model", reqs[1].GetModel())
+			return true
+		})).
+		Return(&aigatewayv1.SubmitBulkChatCompletionsResponse{JobId: providerJobID}, nil).
+		Once()
+
+	repo := repomock.NewRepository(t)
+	lock := repomock.NewDistributionLock(t)
+	repo.EXPECT().
+		GetPromptConfig(mock.Anything, "tmpl-1").
+		Return(&models.PromptConfig{ID: "tmpl-1", Model: sql.NullString{String: "config-model", Valid: true}}, nil).
+		Once()
+	repo.EXPECT().CreateBatchJob(mock.Anything, mock.Anything).Return(nil).Once()
+
+	uc := New(provider, repo, lock)
+	resp, err := uc.SubmitBulkChatCompletions(context.Background(), requests)
+	require.NoError(t, err)
+	assert.Equal(t, providerJobID, resp.GetJobId())
+}
+
+func TestSubmitBulkChatCompletions_TemplateNotFound(t *testing.T) {
+	provider := providermock.NewProvider(t)
+	repo := repomock.NewRepository(t)
+	lock := repomock.NewDistributionLock(t)
+
+	repo.EXPECT().
+		GetPromptConfig(mock.Anything, "missing-template").
+		Return(nil, repository.ErrNotFound).
+		Once()
+
+	uc := New(provider, repo, lock)
+	_, err := uc.SubmitBulkChatCompletions(context.Background(), []*aigatewayv1.SubmitBulkChatCompletionsRequest{{
+		Content:    &aigatewayv1.Content{Role: "user", Text: "hello"},
+		TemplateId: "missing-template",
+	}})
+	require.Error(t, err)
+	assert.Equal(t, codes.NotFound, status.Code(err))
+}
+
+func TestUpsertPromptConfig_PersistsMetadata(t *testing.T) {
+	provider := providermock.NewProvider(t)
+	repo := repomock.NewRepository(t)
+	lock := repomock.NewDistributionLock(t)
+
+	repo.EXPECT().
+		UpsertPromptConfig(mock.Anything, mock.MatchedBy(func(cfg *models.PromptConfig) bool {
+			metadata, err := decodeMetadata(cfg.Metadata)
+			require.NoError(t, err)
+			assert.Equal(t, map[string]string{"tenant": "alpha", "usecase": "submit"}, metadata)
+			return true
+		})).
+		Return(nil).
+		Once()
+
+	uc := New(provider, repo, lock)
+	resp, err := uc.UpsertPromptConfig(context.Background(), &aigatewayv1.UpsertPromptConfigRequest{
+		Id:       "tmpl-1",
+		Metadata: map[string]string{"tenant": "alpha", "usecase": "submit"},
+	})
+	require.NoError(t, err)
+	assert.Equal(t, map[string]string{"tenant": "alpha", "usecase": "submit"}, resp.GetPromptConfig().GetMetadata())
 }

@@ -9,6 +9,7 @@ package aigatewayv1
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -88,6 +89,7 @@ type SubmitBulkChatCompletionsRequest struct {
 	Metadata           map[string]string      `protobuf:"bytes,5,rep,name=metadata,proto3" json:"metadata,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"` // Optional metadata to include with the job. This can be used for tracking or filtering jobs later.
 	JsonSchemaResponse string                 `protobuf:"bytes,6,opt,name=json_schema_response,json=jsonSchemaResponse,proto3" json:"json_schema_response,omitempty"`                           // Optional JSON schema to validate the response against. If not provided, no validation will be performed.
 	WebhookResultUrl   string                 `protobuf:"bytes,7,opt,name=webhook_result_url,json=webhookResultUrl,proto3" json:"webhook_result_url,omitempty"`                                 // Optional URL to send the results to when the job status already in final state. If not provided, results can be retrieved using GetJobResults.
+	TemplateId         string                 `protobuf:"bytes,8,opt,name=template_id,json=templateId,proto3" json:"template_id,omitempty"`                                                     // Optional template ID to use for this job. If provided, empty request fields are filled from the template.
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
@@ -171,64 +173,11 @@ func (x *SubmitBulkChatCompletionsRequest) GetWebhookResultUrl() string {
 	return ""
 }
 
-type GetJobResultsResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Model         string                 `protobuf:"bytes,1,opt,name=model,proto3" json:"model,omitempty"`
-	Content       *Content               `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
-	Metadata      map[string]string      `protobuf:"bytes,3,rep,name=metadata,proto3" json:"metadata,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetJobResultsResponse) Reset() {
-	*x = GetJobResultsResponse{}
-	mi := &file_aigateway_v1_aigateway_proto_msgTypes[1]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetJobResultsResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetJobResultsResponse) ProtoMessage() {}
-
-func (x *GetJobResultsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aigateway_v1_aigateway_proto_msgTypes[1]
+func (x *SubmitBulkChatCompletionsRequest) GetTemplateId() string {
 	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetJobResultsResponse.ProtoReflect.Descriptor instead.
-func (*GetJobResultsResponse) Descriptor() ([]byte, []int) {
-	return file_aigateway_v1_aigateway_proto_rawDescGZIP(), []int{1}
-}
-
-func (x *GetJobResultsResponse) GetModel() string {
-	if x != nil {
-		return x.Model
+		return x.TemplateId
 	}
 	return ""
-}
-
-func (x *GetJobResultsResponse) GetContent() *Content {
-	if x != nil {
-		return x.Content
-	}
-	return nil
-}
-
-func (x *GetJobResultsResponse) GetMetadata() map[string]string {
-	if x != nil {
-		return x.Metadata
-	}
-	return nil
 }
 
 type SubmitBulkChatCompletionsResponse struct {
@@ -240,7 +189,7 @@ type SubmitBulkChatCompletionsResponse struct {
 
 func (x *SubmitBulkChatCompletionsResponse) Reset() {
 	*x = SubmitBulkChatCompletionsResponse{}
-	mi := &file_aigateway_v1_aigateway_proto_msgTypes[2]
+	mi := &file_aigateway_v1_aigateway_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -252,7 +201,7 @@ func (x *SubmitBulkChatCompletionsResponse) String() string {
 func (*SubmitBulkChatCompletionsResponse) ProtoMessage() {}
 
 func (x *SubmitBulkChatCompletionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aigateway_v1_aigateway_proto_msgTypes[2]
+	mi := &file_aigateway_v1_aigateway_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -265,7 +214,7 @@ func (x *SubmitBulkChatCompletionsResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use SubmitBulkChatCompletionsResponse.ProtoReflect.Descriptor instead.
 func (*SubmitBulkChatCompletionsResponse) Descriptor() ([]byte, []int) {
-	return file_aigateway_v1_aigateway_proto_rawDescGZIP(), []int{2}
+	return file_aigateway_v1_aigateway_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *SubmitBulkChatCompletionsResponse) GetJobId() string {
@@ -285,7 +234,7 @@ type Content struct {
 
 func (x *Content) Reset() {
 	*x = Content{}
-	mi := &file_aigateway_v1_aigateway_proto_msgTypes[3]
+	mi := &file_aigateway_v1_aigateway_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -297,7 +246,7 @@ func (x *Content) String() string {
 func (*Content) ProtoMessage() {}
 
 func (x *Content) ProtoReflect() protoreflect.Message {
-	mi := &file_aigateway_v1_aigateway_proto_msgTypes[3]
+	mi := &file_aigateway_v1_aigateway_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -310,7 +259,7 @@ func (x *Content) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Content.ProtoReflect.Descriptor instead.
 func (*Content) Descriptor() ([]byte, []int) {
-	return file_aigateway_v1_aigateway_proto_rawDescGZIP(), []int{3}
+	return file_aigateway_v1_aigateway_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *Content) GetRole() string {
@@ -336,7 +285,7 @@ type GetJobStatusRequest struct {
 
 func (x *GetJobStatusRequest) Reset() {
 	*x = GetJobStatusRequest{}
-	mi := &file_aigateway_v1_aigateway_proto_msgTypes[4]
+	mi := &file_aigateway_v1_aigateway_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -348,7 +297,7 @@ func (x *GetJobStatusRequest) String() string {
 func (*GetJobStatusRequest) ProtoMessage() {}
 
 func (x *GetJobStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aigateway_v1_aigateway_proto_msgTypes[4]
+	mi := &file_aigateway_v1_aigateway_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -361,7 +310,7 @@ func (x *GetJobStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetJobStatusRequest.ProtoReflect.Descriptor instead.
 func (*GetJobStatusRequest) Descriptor() ([]byte, []int) {
-	return file_aigateway_v1_aigateway_proto_rawDescGZIP(), []int{4}
+	return file_aigateway_v1_aigateway_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *GetJobStatusRequest) GetJobId() string {
@@ -380,7 +329,7 @@ type GetJobResultsRequest struct {
 
 func (x *GetJobResultsRequest) Reset() {
 	*x = GetJobResultsRequest{}
-	mi := &file_aigateway_v1_aigateway_proto_msgTypes[5]
+	mi := &file_aigateway_v1_aigateway_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -392,7 +341,7 @@ func (x *GetJobResultsRequest) String() string {
 func (*GetJobResultsRequest) ProtoMessage() {}
 
 func (x *GetJobResultsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aigateway_v1_aigateway_proto_msgTypes[5]
+	mi := &file_aigateway_v1_aigateway_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -405,7 +354,7 @@ func (x *GetJobResultsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetJobResultsRequest.ProtoReflect.Descriptor instead.
 func (*GetJobResultsRequest) Descriptor() ([]byte, []int) {
-	return file_aigateway_v1_aigateway_proto_rawDescGZIP(), []int{5}
+	return file_aigateway_v1_aigateway_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *GetJobResultsRequest) GetJobId() string {
@@ -413,6 +362,66 @@ func (x *GetJobResultsRequest) GetJobId() string {
 		return x.JobId
 	}
 	return ""
+}
+
+type GetJobResultsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Model         string                 `protobuf:"bytes,1,opt,name=model,proto3" json:"model,omitempty"`
+	Content       *Content               `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
+	Metadata      map[string]string      `protobuf:"bytes,3,rep,name=metadata,proto3" json:"metadata,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetJobResultsResponse) Reset() {
+	*x = GetJobResultsResponse{}
+	mi := &file_aigateway_v1_aigateway_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetJobResultsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetJobResultsResponse) ProtoMessage() {}
+
+func (x *GetJobResultsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aigateway_v1_aigateway_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetJobResultsResponse.ProtoReflect.Descriptor instead.
+func (*GetJobResultsResponse) Descriptor() ([]byte, []int) {
+	return file_aigateway_v1_aigateway_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *GetJobResultsResponse) GetModel() string {
+	if x != nil {
+		return x.Model
+	}
+	return ""
+}
+
+func (x *GetJobResultsResponse) GetContent() *Content {
+	if x != nil {
+		return x.Content
+	}
+	return nil
+}
+
+func (x *GetJobResultsResponse) GetMetadata() map[string]string {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
 }
 
 type GetJobStatusResponse struct {
@@ -467,11 +476,416 @@ func (x *GetJobStatusResponse) GetStatus() JobStatus {
 	return JobStatus_JOB_STATUS_UNSPECIFIED
 }
 
+// PromptConfig represents a reusable prompt template for bulk chat submissions.
+type PromptConfig struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	Id                 string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Description        string                 `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
+	Model              string                 `protobuf:"bytes,3,opt,name=model,proto3" json:"model,omitempty"`
+	SystemInstruction  string                 `protobuf:"bytes,4,opt,name=system_instruction,json=systemInstruction,proto3" json:"system_instruction,omitempty"`
+	JsonSchemaResponse string                 `protobuf:"bytes,5,opt,name=json_schema_response,json=jsonSchemaResponse,proto3" json:"json_schema_response,omitempty"`
+	Temperature        float32                `protobuf:"fixed32,6,opt,name=temperature,proto3" json:"temperature,omitempty"`
+	CreatedAt          *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt          *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	Metadata           map[string]string      `protobuf:"bytes,9,rep,name=metadata,proto3" json:"metadata,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *PromptConfig) Reset() {
+	*x = PromptConfig{}
+	mi := &file_aigateway_v1_aigateway_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PromptConfig) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PromptConfig) ProtoMessage() {}
+
+func (x *PromptConfig) ProtoReflect() protoreflect.Message {
+	mi := &file_aigateway_v1_aigateway_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PromptConfig.ProtoReflect.Descriptor instead.
+func (*PromptConfig) Descriptor() ([]byte, []int) {
+	return file_aigateway_v1_aigateway_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *PromptConfig) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *PromptConfig) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *PromptConfig) GetModel() string {
+	if x != nil {
+		return x.Model
+	}
+	return ""
+}
+
+func (x *PromptConfig) GetSystemInstruction() string {
+	if x != nil {
+		return x.SystemInstruction
+	}
+	return ""
+}
+
+func (x *PromptConfig) GetJsonSchemaResponse() string {
+	if x != nil {
+		return x.JsonSchemaResponse
+	}
+	return ""
+}
+
+func (x *PromptConfig) GetTemperature() float32 {
+	if x != nil {
+		return x.Temperature
+	}
+	return 0
+}
+
+func (x *PromptConfig) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+func (x *PromptConfig) GetUpdatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return nil
+}
+
+func (x *PromptConfig) GetMetadata() map[string]string {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
+type UpsertPromptConfigRequest struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	Id                 string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"` // Required. Caller-supplied stable identifier.
+	Description        string                 `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
+	Model              string                 `protobuf:"bytes,3,opt,name=model,proto3" json:"model,omitempty"`
+	SystemInstruction  string                 `protobuf:"bytes,4,opt,name=system_instruction,json=systemInstruction,proto3" json:"system_instruction,omitempty"`
+	JsonSchemaResponse string                 `protobuf:"bytes,5,opt,name=json_schema_response,json=jsonSchemaResponse,proto3" json:"json_schema_response,omitempty"`
+	Temperature        float32                `protobuf:"fixed32,6,opt,name=temperature,proto3" json:"temperature,omitempty"`
+	Metadata           map[string]string      `protobuf:"bytes,7,rep,name=metadata,proto3" json:"metadata,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *UpsertPromptConfigRequest) Reset() {
+	*x = UpsertPromptConfigRequest{}
+	mi := &file_aigateway_v1_aigateway_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpsertPromptConfigRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpsertPromptConfigRequest) ProtoMessage() {}
+
+func (x *UpsertPromptConfigRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aigateway_v1_aigateway_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpsertPromptConfigRequest.ProtoReflect.Descriptor instead.
+func (*UpsertPromptConfigRequest) Descriptor() ([]byte, []int) {
+	return file_aigateway_v1_aigateway_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *UpsertPromptConfigRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *UpsertPromptConfigRequest) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *UpsertPromptConfigRequest) GetModel() string {
+	if x != nil {
+		return x.Model
+	}
+	return ""
+}
+
+func (x *UpsertPromptConfigRequest) GetSystemInstruction() string {
+	if x != nil {
+		return x.SystemInstruction
+	}
+	return ""
+}
+
+func (x *UpsertPromptConfigRequest) GetJsonSchemaResponse() string {
+	if x != nil {
+		return x.JsonSchemaResponse
+	}
+	return ""
+}
+
+func (x *UpsertPromptConfigRequest) GetTemperature() float32 {
+	if x != nil {
+		return x.Temperature
+	}
+	return 0
+}
+
+func (x *UpsertPromptConfigRequest) GetMetadata() map[string]string {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
+type UpsertPromptConfigResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PromptConfig  *PromptConfig          `protobuf:"bytes,1,opt,name=prompt_config,json=promptConfig,proto3" json:"prompt_config,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpsertPromptConfigResponse) Reset() {
+	*x = UpsertPromptConfigResponse{}
+	mi := &file_aigateway_v1_aigateway_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpsertPromptConfigResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpsertPromptConfigResponse) ProtoMessage() {}
+
+func (x *UpsertPromptConfigResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aigateway_v1_aigateway_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpsertPromptConfigResponse.ProtoReflect.Descriptor instead.
+func (*UpsertPromptConfigResponse) Descriptor() ([]byte, []int) {
+	return file_aigateway_v1_aigateway_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *UpsertPromptConfigResponse) GetPromptConfig() *PromptConfig {
+	if x != nil {
+		return x.PromptConfig
+	}
+	return nil
+}
+
+type ListPromptConfigsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListPromptConfigsRequest) Reset() {
+	*x = ListPromptConfigsRequest{}
+	mi := &file_aigateway_v1_aigateway_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListPromptConfigsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListPromptConfigsRequest) ProtoMessage() {}
+
+func (x *ListPromptConfigsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aigateway_v1_aigateway_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListPromptConfigsRequest.ProtoReflect.Descriptor instead.
+func (*ListPromptConfigsRequest) Descriptor() ([]byte, []int) {
+	return file_aigateway_v1_aigateway_proto_rawDescGZIP(), []int{10}
+}
+
+type ListPromptConfigsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PromptConfigs []*PromptConfig        `protobuf:"bytes,1,rep,name=prompt_configs,json=promptConfigs,proto3" json:"prompt_configs,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListPromptConfigsResponse) Reset() {
+	*x = ListPromptConfigsResponse{}
+	mi := &file_aigateway_v1_aigateway_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListPromptConfigsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListPromptConfigsResponse) ProtoMessage() {}
+
+func (x *ListPromptConfigsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aigateway_v1_aigateway_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListPromptConfigsResponse.ProtoReflect.Descriptor instead.
+func (*ListPromptConfigsResponse) Descriptor() ([]byte, []int) {
+	return file_aigateway_v1_aigateway_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *ListPromptConfigsResponse) GetPromptConfigs() []*PromptConfig {
+	if x != nil {
+		return x.PromptConfigs
+	}
+	return nil
+}
+
+type DeletePromptConfigRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeletePromptConfigRequest) Reset() {
+	*x = DeletePromptConfigRequest{}
+	mi := &file_aigateway_v1_aigateway_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeletePromptConfigRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeletePromptConfigRequest) ProtoMessage() {}
+
+func (x *DeletePromptConfigRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aigateway_v1_aigateway_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeletePromptConfigRequest.ProtoReflect.Descriptor instead.
+func (*DeletePromptConfigRequest) Descriptor() ([]byte, []int) {
+	return file_aigateway_v1_aigateway_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *DeletePromptConfigRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type DeletePromptConfigResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeletePromptConfigResponse) Reset() {
+	*x = DeletePromptConfigResponse{}
+	mi := &file_aigateway_v1_aigateway_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeletePromptConfigResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeletePromptConfigResponse) ProtoMessage() {}
+
+func (x *DeletePromptConfigResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aigateway_v1_aigateway_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeletePromptConfigResponse.ProtoReflect.Descriptor instead.
+func (*DeletePromptConfigResponse) Descriptor() ([]byte, []int) {
+	return file_aigateway_v1_aigateway_proto_rawDescGZIP(), []int{13}
+}
+
 var File_aigateway_v1_aigateway_proto protoreflect.FileDescriptor
 
 const file_aigateway_v1_aigateway_proto_rawDesc = "" +
 	"\n" +
-	"\x1caigateway/v1/aigateway.proto\x12\faigateway.v1\"\xc8\x03\n" +
+	"\x1caigateway/v1/aigateway.proto\x12\faigateway.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xe9\x03\n" +
 	" SubmitBulkChatCompletionsRequest\x12\x14\n" +
 	"\x05model\x18\x01 \x01(\tR\x05model\x12/\n" +
 	"\acontent\x18\x02 \x01(\v2\x15.aigateway.v1.ContentR\acontent\x12D\n" +
@@ -479,14 +893,9 @@ const file_aigateway_v1_aigateway_proto_rawDesc = "" +
 	"\vtemperature\x18\x04 \x01(\x02R\vtemperature\x12X\n" +
 	"\bmetadata\x18\x05 \x03(\v2<.aigateway.v1.SubmitBulkChatCompletionsRequest.MetadataEntryR\bmetadata\x120\n" +
 	"\x14json_schema_response\x18\x06 \x01(\tR\x12jsonSchemaResponse\x12,\n" +
-	"\x12webhook_result_url\x18\a \x01(\tR\x10webhookResultUrl\x1a;\n" +
-	"\rMetadataEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xea\x01\n" +
-	"\x15GetJobResultsResponse\x12\x14\n" +
-	"\x05model\x18\x01 \x01(\tR\x05model\x12/\n" +
-	"\acontent\x18\x02 \x01(\v2\x15.aigateway.v1.ContentR\acontent\x12M\n" +
-	"\bmetadata\x18\x03 \x03(\v21.aigateway.v1.GetJobResultsResponse.MetadataEntryR\bmetadata\x1a;\n" +
+	"\x12webhook_result_url\x18\a \x01(\tR\x10webhookResultUrl\x12\x1f\n" +
+	"\vtemplate_id\x18\b \x01(\tR\n" +
+	"templateId\x1a;\n" +
 	"\rMetadataEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\":\n" +
@@ -498,21 +907,65 @@ const file_aigateway_v1_aigateway_proto_rawDesc = "" +
 	"\x13GetJobStatusRequest\x12\x15\n" +
 	"\x06job_id\x18\x01 \x01(\tR\x05jobId\"-\n" +
 	"\x14GetJobResultsRequest\x12\x15\n" +
-	"\x06job_id\x18\x01 \x01(\tR\x05jobId\"^\n" +
+	"\x06job_id\x18\x01 \x01(\tR\x05jobId\"\xea\x01\n" +
+	"\x15GetJobResultsResponse\x12\x14\n" +
+	"\x05model\x18\x01 \x01(\tR\x05model\x12/\n" +
+	"\acontent\x18\x02 \x01(\v2\x15.aigateway.v1.ContentR\acontent\x12M\n" +
+	"\bmetadata\x18\x03 \x03(\v21.aigateway.v1.GetJobResultsResponse.MetadataEntryR\bmetadata\x1a;\n" +
+	"\rMetadataEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"^\n" +
 	"\x14GetJobStatusResponse\x12\x15\n" +
 	"\x06job_id\x18\x01 \x01(\tR\x05jobId\x12/\n" +
-	"\x06status\x18\x02 \x01(\x0e2\x17.aigateway.v1.JobStatusR\x06status*\xb0\x01\n" +
+	"\x06status\x18\x02 \x01(\x0e2\x17.aigateway.v1.JobStatusR\x06status\"\xd2\x03\n" +
+	"\fPromptConfig\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12 \n" +
+	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x14\n" +
+	"\x05model\x18\x03 \x01(\tR\x05model\x12-\n" +
+	"\x12system_instruction\x18\x04 \x01(\tR\x11systemInstruction\x120\n" +
+	"\x14json_schema_response\x18\x05 \x01(\tR\x12jsonSchemaResponse\x12 \n" +
+	"\vtemperature\x18\x06 \x01(\x02R\vtemperature\x129\n" +
+	"\n" +
+	"created_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
+	"\n" +
+	"updated_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12D\n" +
+	"\bmetadata\x18\t \x03(\v2(.aigateway.v1.PromptConfig.MetadataEntryR\bmetadata\x1a;\n" +
+	"\rMetadataEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xf6\x02\n" +
+	"\x19UpsertPromptConfigRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12 \n" +
+	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x14\n" +
+	"\x05model\x18\x03 \x01(\tR\x05model\x12-\n" +
+	"\x12system_instruction\x18\x04 \x01(\tR\x11systemInstruction\x120\n" +
+	"\x14json_schema_response\x18\x05 \x01(\tR\x12jsonSchemaResponse\x12 \n" +
+	"\vtemperature\x18\x06 \x01(\x02R\vtemperature\x12Q\n" +
+	"\bmetadata\x18\a \x03(\v25.aigateway.v1.UpsertPromptConfigRequest.MetadataEntryR\bmetadata\x1a;\n" +
+	"\rMetadataEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"]\n" +
+	"\x1aUpsertPromptConfigResponse\x12?\n" +
+	"\rprompt_config\x18\x01 \x01(\v2\x1a.aigateway.v1.PromptConfigR\fpromptConfig\"\x1a\n" +
+	"\x18ListPromptConfigsRequest\"^\n" +
+	"\x19ListPromptConfigsResponse\x12A\n" +
+	"\x0eprompt_configs\x18\x01 \x03(\v2\x1a.aigateway.v1.PromptConfigR\rpromptConfigs\"+\n" +
+	"\x19DeletePromptConfigRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"\x1c\n" +
+	"\x1aDeletePromptConfigResponse*\xb0\x01\n" +
 	"\tJobStatus\x12\x1a\n" +
 	"\x16JOB_STATUS_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12JOB_STATUS_PENDING\x10\x01\x12\x1a\n" +
 	"\x16JOB_STATUS_IN_PROGRESS\x10\x02\x12\x18\n" +
 	"\x14JOB_STATUS_COMPLETED\x10\x03\x12\x15\n" +
 	"\x11JOB_STATUS_FAILED\x10\x04\x12\"\n" +
-	"\x1eJOB_STATUS_PARTIALLY_COMPLETED\x10\x052\xc5\x02\n" +
+	"\x1eJOB_STATUS_PARTIALLY_COMPLETED\x10\x052\xfd\x04\n" +
 	"\x10AIGatewayService\x12~\n" +
 	"\x19SubmitBulkChatCompletions\x12..aigateway.v1.SubmitBulkChatCompletionsRequest\x1a/.aigateway.v1.SubmitBulkChatCompletionsResponse(\x01\x12U\n" +
 	"\fGetJobStatus\x12!.aigateway.v1.GetJobStatusRequest\x1a\".aigateway.v1.GetJobStatusResponse\x12Z\n" +
-	"\rGetJobResults\x12\".aigateway.v1.GetJobResultsRequest\x1a#.aigateway.v1.GetJobResultsResponse0\x01BAZ?github.com/ideagate/aigateway-core/gen/aigateway/v1;aigatewayv1b\x06proto3"
+	"\rGetJobResults\x12\".aigateway.v1.GetJobResultsRequest\x1a#.aigateway.v1.GetJobResultsResponse0\x01\x12g\n" +
+	"\x12UpsertPromptConfig\x12'.aigateway.v1.UpsertPromptConfigRequest\x1a(.aigateway.v1.UpsertPromptConfigResponse\x12d\n" +
+	"\x11ListPromptConfigs\x12&.aigateway.v1.ListPromptConfigsRequest\x1a'.aigateway.v1.ListPromptConfigsResponse\x12g\n" +
+	"\x12DeletePromptConfig\x12'.aigateway.v1.DeletePromptConfigRequest\x1a(.aigateway.v1.DeletePromptConfigResponseBAZ?github.com/ideagate/aigateway-core/gen/aigateway/v1;aigatewayv1b\x06proto3"
 
 var (
 	file_aigateway_v1_aigateway_proto_rawDescOnce sync.Once
@@ -527,37 +980,59 @@ func file_aigateway_v1_aigateway_proto_rawDescGZIP() []byte {
 }
 
 var file_aigateway_v1_aigateway_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_aigateway_v1_aigateway_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_aigateway_v1_aigateway_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
 var file_aigateway_v1_aigateway_proto_goTypes = []any{
 	(JobStatus)(0),                            // 0: aigateway.v1.JobStatus
 	(*SubmitBulkChatCompletionsRequest)(nil),  // 1: aigateway.v1.SubmitBulkChatCompletionsRequest
-	(*GetJobResultsResponse)(nil),             // 2: aigateway.v1.GetJobResultsResponse
-	(*SubmitBulkChatCompletionsResponse)(nil), // 3: aigateway.v1.SubmitBulkChatCompletionsResponse
-	(*Content)(nil),                           // 4: aigateway.v1.Content
-	(*GetJobStatusRequest)(nil),               // 5: aigateway.v1.GetJobStatusRequest
-	(*GetJobResultsRequest)(nil),              // 6: aigateway.v1.GetJobResultsRequest
+	(*SubmitBulkChatCompletionsResponse)(nil), // 2: aigateway.v1.SubmitBulkChatCompletionsResponse
+	(*Content)(nil),                           // 3: aigateway.v1.Content
+	(*GetJobStatusRequest)(nil),               // 4: aigateway.v1.GetJobStatusRequest
+	(*GetJobResultsRequest)(nil),              // 5: aigateway.v1.GetJobResultsRequest
+	(*GetJobResultsResponse)(nil),             // 6: aigateway.v1.GetJobResultsResponse
 	(*GetJobStatusResponse)(nil),              // 7: aigateway.v1.GetJobStatusResponse
-	nil,                                       // 8: aigateway.v1.SubmitBulkChatCompletionsRequest.MetadataEntry
-	nil,                                       // 9: aigateway.v1.GetJobResultsResponse.MetadataEntry
+	(*PromptConfig)(nil),                      // 8: aigateway.v1.PromptConfig
+	(*UpsertPromptConfigRequest)(nil),         // 9: aigateway.v1.UpsertPromptConfigRequest
+	(*UpsertPromptConfigResponse)(nil),        // 10: aigateway.v1.UpsertPromptConfigResponse
+	(*ListPromptConfigsRequest)(nil),          // 11: aigateway.v1.ListPromptConfigsRequest
+	(*ListPromptConfigsResponse)(nil),         // 12: aigateway.v1.ListPromptConfigsResponse
+	(*DeletePromptConfigRequest)(nil),         // 13: aigateway.v1.DeletePromptConfigRequest
+	(*DeletePromptConfigResponse)(nil),        // 14: aigateway.v1.DeletePromptConfigResponse
+	nil,                                       // 15: aigateway.v1.SubmitBulkChatCompletionsRequest.MetadataEntry
+	nil,                                       // 16: aigateway.v1.GetJobResultsResponse.MetadataEntry
+	nil,                                       // 17: aigateway.v1.PromptConfig.MetadataEntry
+	nil,                                       // 18: aigateway.v1.UpsertPromptConfigRequest.MetadataEntry
+	(*timestamppb.Timestamp)(nil),             // 19: google.protobuf.Timestamp
 }
 var file_aigateway_v1_aigateway_proto_depIdxs = []int32{
-	4, // 0: aigateway.v1.SubmitBulkChatCompletionsRequest.content:type_name -> aigateway.v1.Content
-	4, // 1: aigateway.v1.SubmitBulkChatCompletionsRequest.system_instruction:type_name -> aigateway.v1.Content
-	8, // 2: aigateway.v1.SubmitBulkChatCompletionsRequest.metadata:type_name -> aigateway.v1.SubmitBulkChatCompletionsRequest.MetadataEntry
-	4, // 3: aigateway.v1.GetJobResultsResponse.content:type_name -> aigateway.v1.Content
-	9, // 4: aigateway.v1.GetJobResultsResponse.metadata:type_name -> aigateway.v1.GetJobResultsResponse.MetadataEntry
-	0, // 5: aigateway.v1.GetJobStatusResponse.status:type_name -> aigateway.v1.JobStatus
-	1, // 6: aigateway.v1.AIGatewayService.SubmitBulkChatCompletions:input_type -> aigateway.v1.SubmitBulkChatCompletionsRequest
-	5, // 7: aigateway.v1.AIGatewayService.GetJobStatus:input_type -> aigateway.v1.GetJobStatusRequest
-	6, // 8: aigateway.v1.AIGatewayService.GetJobResults:input_type -> aigateway.v1.GetJobResultsRequest
-	3, // 9: aigateway.v1.AIGatewayService.SubmitBulkChatCompletions:output_type -> aigateway.v1.SubmitBulkChatCompletionsResponse
-	7, // 10: aigateway.v1.AIGatewayService.GetJobStatus:output_type -> aigateway.v1.GetJobStatusResponse
-	2, // 11: aigateway.v1.AIGatewayService.GetJobResults:output_type -> aigateway.v1.GetJobResultsResponse
-	9, // [9:12] is the sub-list for method output_type
-	6, // [6:9] is the sub-list for method input_type
-	6, // [6:6] is the sub-list for extension type_name
-	6, // [6:6] is the sub-list for extension extendee
-	0, // [0:6] is the sub-list for field type_name
+	3,  // 0: aigateway.v1.SubmitBulkChatCompletionsRequest.content:type_name -> aigateway.v1.Content
+	3,  // 1: aigateway.v1.SubmitBulkChatCompletionsRequest.system_instruction:type_name -> aigateway.v1.Content
+	15, // 2: aigateway.v1.SubmitBulkChatCompletionsRequest.metadata:type_name -> aigateway.v1.SubmitBulkChatCompletionsRequest.MetadataEntry
+	3,  // 3: aigateway.v1.GetJobResultsResponse.content:type_name -> aigateway.v1.Content
+	16, // 4: aigateway.v1.GetJobResultsResponse.metadata:type_name -> aigateway.v1.GetJobResultsResponse.MetadataEntry
+	0,  // 5: aigateway.v1.GetJobStatusResponse.status:type_name -> aigateway.v1.JobStatus
+	19, // 6: aigateway.v1.PromptConfig.created_at:type_name -> google.protobuf.Timestamp
+	19, // 7: aigateway.v1.PromptConfig.updated_at:type_name -> google.protobuf.Timestamp
+	17, // 8: aigateway.v1.PromptConfig.metadata:type_name -> aigateway.v1.PromptConfig.MetadataEntry
+	18, // 9: aigateway.v1.UpsertPromptConfigRequest.metadata:type_name -> aigateway.v1.UpsertPromptConfigRequest.MetadataEntry
+	8,  // 10: aigateway.v1.UpsertPromptConfigResponse.prompt_config:type_name -> aigateway.v1.PromptConfig
+	8,  // 11: aigateway.v1.ListPromptConfigsResponse.prompt_configs:type_name -> aigateway.v1.PromptConfig
+	1,  // 12: aigateway.v1.AIGatewayService.SubmitBulkChatCompletions:input_type -> aigateway.v1.SubmitBulkChatCompletionsRequest
+	4,  // 13: aigateway.v1.AIGatewayService.GetJobStatus:input_type -> aigateway.v1.GetJobStatusRequest
+	5,  // 14: aigateway.v1.AIGatewayService.GetJobResults:input_type -> aigateway.v1.GetJobResultsRequest
+	9,  // 15: aigateway.v1.AIGatewayService.UpsertPromptConfig:input_type -> aigateway.v1.UpsertPromptConfigRequest
+	11, // 16: aigateway.v1.AIGatewayService.ListPromptConfigs:input_type -> aigateway.v1.ListPromptConfigsRequest
+	13, // 17: aigateway.v1.AIGatewayService.DeletePromptConfig:input_type -> aigateway.v1.DeletePromptConfigRequest
+	2,  // 18: aigateway.v1.AIGatewayService.SubmitBulkChatCompletions:output_type -> aigateway.v1.SubmitBulkChatCompletionsResponse
+	7,  // 19: aigateway.v1.AIGatewayService.GetJobStatus:output_type -> aigateway.v1.GetJobStatusResponse
+	6,  // 20: aigateway.v1.AIGatewayService.GetJobResults:output_type -> aigateway.v1.GetJobResultsResponse
+	10, // 21: aigateway.v1.AIGatewayService.UpsertPromptConfig:output_type -> aigateway.v1.UpsertPromptConfigResponse
+	12, // 22: aigateway.v1.AIGatewayService.ListPromptConfigs:output_type -> aigateway.v1.ListPromptConfigsResponse
+	14, // 23: aigateway.v1.AIGatewayService.DeletePromptConfig:output_type -> aigateway.v1.DeletePromptConfigResponse
+	18, // [18:24] is the sub-list for method output_type
+	12, // [12:18] is the sub-list for method input_type
+	12, // [12:12] is the sub-list for extension type_name
+	12, // [12:12] is the sub-list for extension extendee
+	0,  // [0:12] is the sub-list for field type_name
 }
 
 func init() { file_aigateway_v1_aigateway_proto_init() }
@@ -571,7 +1046,7 @@ func file_aigateway_v1_aigateway_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_aigateway_v1_aigateway_proto_rawDesc), len(file_aigateway_v1_aigateway_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   9,
+			NumMessages:   18,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

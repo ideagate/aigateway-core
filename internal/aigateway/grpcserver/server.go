@@ -74,6 +74,42 @@ func (s *Server) GetJobResults(req *aigatewayv1.GetJobResultsRequest, stream grp
 	return nil
 }
 
+// UpsertPromptConfig creates or fully replaces a prompt config record.
+func (s *Server) UpsertPromptConfig(ctx context.Context, req *aigatewayv1.UpsertPromptConfigRequest) (*aigatewayv1.UpsertPromptConfigResponse, error) {
+	resp, err := s.usecase.UpsertPromptConfig(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	if resp == nil {
+		resp = &aigatewayv1.UpsertPromptConfigResponse{}
+	}
+	return resp, nil
+}
+
+// ListPromptConfigs returns all prompt config records.
+func (s *Server) ListPromptConfigs(ctx context.Context, req *aigatewayv1.ListPromptConfigsRequest) (*aigatewayv1.ListPromptConfigsResponse, error) {
+	resp, err := s.usecase.ListPromptConfigs(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	if resp == nil {
+		resp = &aigatewayv1.ListPromptConfigsResponse{}
+	}
+	return resp, nil
+}
+
+// DeletePromptConfig removes a prompt config by ID.
+func (s *Server) DeletePromptConfig(ctx context.Context, req *aigatewayv1.DeletePromptConfigRequest) (*aigatewayv1.DeletePromptConfigResponse, error) {
+	resp, err := s.usecase.DeletePromptConfig(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	if resp == nil {
+		resp = &aigatewayv1.DeletePromptConfigResponse{}
+	}
+	return resp, nil
+}
+
 func recvSubmitBulkChatCompletionsRequests(stream grpc.ClientStreamingServer[aigatewayv1.SubmitBulkChatCompletionsRequest, aigatewayv1.SubmitBulkChatCompletionsResponse]) ([]*aigatewayv1.SubmitBulkChatCompletionsRequest, error) {
 	var requests []*aigatewayv1.SubmitBulkChatCompletionsRequest
 	for {
