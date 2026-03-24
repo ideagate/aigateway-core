@@ -7,13 +7,13 @@ RUN apk add --no-cache ca-certificates tzdata
 
 WORKDIR /app
 
-# Build argument to select which pre-built binary to copy.
-# Allowed values: api | db-migrate | scheduler
-# The binary must be present at dist/<CMD_NAME> in the build context
+# All three pre-built binaries are copied in so the image can run any of them.
+# Binaries must be present at dist/ in the build context
 # (produced by the CI lint-test-build step).
-ARG CMD_NAME=api
+COPY dist/api /app/api
+COPY dist/db-migrate /app/db-migrate
+COPY dist/scheduler /app/scheduler
 
-COPY dist/${CMD_NAME} /app/server
 # config/default.yaml ships as a baseline with placeholder values.
 # Override at runtime via:
 #   - Environment variables (e.g. DATASTORES_POSTGRES_HOST=<host>)
@@ -22,4 +22,9 @@ COPY config/default.yaml config/default.yaml
 
 EXPOSE 50051
 
-ENTRYPOINT ["/app/server"]
+# Build argument to select which binary to run by default.
+# Allowed values: api | db-migrate | scheduler
+ARG CMD_NAME=api
+ENV CMD_NAME=${CMD_NAME}
+
+ENTRYPOINT ["/bin/sh", "-c", "/app/$CMD_NAME \"$@\"", "sh"]

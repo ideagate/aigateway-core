@@ -81,8 +81,8 @@ jobs:
           name: binaries
           path: dist/
 
-      - name: Make binary executable
-        run: chmod +x dist/${{ matrix.cmd }}
+      - name: Make binaries executable
+        run: chmod +x dist/api dist/db-migrate dist/scheduler
 
       - name: Extract Docker metadata
         id: meta
