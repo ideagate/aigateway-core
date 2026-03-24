@@ -75,6 +75,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: binaries
+          path: dist/
+
+      - name: Make binary executable
+        run: chmod +x dist/${{ matrix.cmd }}
+
       - name: Extract Docker metadata
         id: meta
         uses: docker/metadata-action@v5
@@ -103,5 +112,3 @@ jobs:
           build-args: CMD_NAME=${{ matrix.cmd }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
