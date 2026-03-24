@@ -28,10 +28,6 @@ type Usecase interface {
 	SubmitBulkChatCompletions(context.Context, []*aigatewayv1.SubmitBulkChatCompletionsRequest) (*aigatewayv1.SubmitBulkChatCompletionsResponse, error)
 	GetJobStatus(context.Context, *aigatewayv1.GetJobStatusRequest) (*aigatewayv1.GetJobStatusResponse, error)
 	GetJobResults(context.Context, *aigatewayv1.GetJobResultsRequest) ([]*aigatewayv1.GetJobResultsResponse, error)
-	// SyncBatchJobStatus polls all active batch jobs against the AI provider and
-	// updates their status and results in the database. Intended to be called
-	// from a periodic scheduler. A per-job distributed Redis lock ensures each
-	// job is processed by at most one pod even under concurrent execution.
 	SyncBatchJobStatus(context.Context) error
 }
 

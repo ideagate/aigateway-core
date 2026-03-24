@@ -1,6 +1,6 @@
 // cmd/scheduler runs background cron jobs for the AI Gateway service.
 // Currently registered jobs:
-//   - sync-batch-job-status: every minute, polls active batch jobs and writes back results.
+//   - sync-batch-job-status: polls active batch jobs and writes back results (config-driven cron).
 package main
 
 import (
@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"github.com/robfig/cron/v3"
@@ -54,9 +55,13 @@ func main() {
 
 	// ── Cron ────────────────────────────────────────────────────────────────
 	c := cron.New()
+	syncBatchJobStatusCron := strings.TrimSpace(cfg.Scheduler.SyncBatchJobStatusCron)
+	if syncBatchJobStatusCron == "" {
+		log.Fatal("scheduler: scheduler.sync_batch_job_status_cron must not be empty")
+	}
 
-	// Run every minute. Add more jobs below as the scheduler grows.
-	if _, err := c.AddFunc("* * * * *", func() {
+	// Register cron jobs from config. Add more jobs below as the scheduler grows.
+	if _, err := c.AddFunc(syncBatchJobStatusCron, func() {
 		ctx := context.Background()
 		log.Println("scheduler: [sync-batch-job-status] tick started")
 		if err := uc.SyncBatchJobStatus(ctx); err != nil {
@@ -64,11 +69,11 @@ func main() {
 		}
 		log.Println("scheduler: [sync-batch-job-status] tick finished")
 	}); err != nil {
-		log.Fatalf("scheduler: failed to register sync-batch-job-status cron: %v", err)
+		log.Fatalf("scheduler: invalid scheduler.sync_batch_job_status_cron %q: %v", syncBatchJobStatusCron, err)
 	}
 
 	c.Start()
-	log.Println("scheduler: started — press Ctrl+C to stop")
+	log.Printf("scheduler: started with scheduler.sync_batch_job_status_cron=%q — press Ctrl+C to stop", syncBatchJobStatusCron)
 
 	// ── Graceful shutdown ────────────────────────────────────────────────────
 	quit := make(chan os.Signal, 1)

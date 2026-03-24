@@ -10,6 +10,7 @@ import (
 type Config struct {
 	Datastores DatastoresConfig `mapstructure:"datastores"`
 	Providers  ProvidersConfig  `mapstructure:"providers"`
+	Scheduler  SchedulerConfig  `mapstructure:"scheduler"`
 }
 
 type DatastoresConfig struct {
@@ -44,6 +45,10 @@ type GeminiConfig struct {
 type VertexAIConfig struct {
 	Project  string `mapstructure:"project"`
 	Location string `mapstructure:"location"`
+}
+
+type SchedulerConfig struct {
+	SyncBatchJobStatusCron string `mapstructure:"sync_batch_job_status_cron"`
 }
 
 func LoadConfig(configPaths ...string) (*Config, error) {

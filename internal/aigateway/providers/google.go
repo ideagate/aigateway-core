@@ -86,16 +86,16 @@ func (g *GoogleProvider) SubmitBatchJob(ctx context.Context, requests []*aigatew
 
 	job, err := g.client.Batches.Create(
 		ctx,
-		"",
+		batchRequests[0].Model,
 		&genai.BatchJobSource{InlinedRequests: batchRequests},
 		&genai.CreateBatchJobConfig{},
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to submit batch job: %w", err)
+		return nil, fmt.Errorf("failed to create batch job: %w", err)
 	}
 
 	return &aigatewayv1.SubmitBulkChatCompletionsResponse{
-		JobId: job.DisplayName,
+		JobId: job.Name,
 	}, nil
 }
 

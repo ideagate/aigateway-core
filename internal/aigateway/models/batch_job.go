@@ -38,7 +38,7 @@ type BatchJob struct {
 	CreatedTimestamp           time.Time  `gorm:"column:created_timestamp;not null;default:now();type:timestamptz"`
 	SubmittedTimestamp         *time.Time `gorm:"column:submitted_timestamp;type:timestamptz"`
 	FinishedTimestamp          *time.Time `gorm:"column:finished_timestamp;type:timestamptz"`
-	ResultsJson                []byte     `gorm:"column:results_json;not null"`
+	ResultsJson                []byte     `gorm:"column:results_json"`
 	WebhookResultURL           *string    `gorm:"column:webhook_result_url"`
 	SendWebhookResultTimestamp *time.Time `gorm:"column:send_webhook_result_timestamp;type:timestamptz"`
 }

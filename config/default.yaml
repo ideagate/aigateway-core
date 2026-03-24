@@ -18,3 +18,6 @@ providers:
     project: your-gcp-project
     location: us-central1
 
+scheduler:
+  sync_batch_job_status_cron: "* * * * *"
+

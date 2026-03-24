@@ -1,10 +1,16 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
 	"net"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	aigatewayv1 "github.com/ideagate/aigateway-core/gen/aigateway/v1"
 	hellov1 "github.com/ideagate/aigateway-core/gen/hello/v1"
@@ -18,6 +24,8 @@ import (
 	platformconfig "github.com/ideagate/aigateway-core/internal/platform/config"
 	platformdb "github.com/ideagate/aigateway-core/internal/platform/db"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/health"
+	grpc_health_v1 "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
 	"gorm.io/gorm"
 )
@@ -61,15 +69,62 @@ func main() {
 	}
 
 	srv := grpc.NewServer()
+	healthSrv := health.NewServer()
+	grpc_health_v1.RegisterHealthServer(srv, healthSrv)
+	healthSrv.SetServingStatus("", grpc_health_v1.HealthCheckResponse_SERVING)
+
 	aigatewayv1.RegisterAIGatewayServiceServer(srv, aigatewaygrpc.New(aigatewayusecase.New(provider, repo, repoLock)))
 	hellov1.RegisterHelloServiceServer(srv, hellogrpc.New(hellousecase.New()))
 
 	// Register reflection so tools like grpcurl can inspect the server.
 	reflection.Register(srv)
 
+	serveErr := make(chan error, 1)
+	go func() {
+		err := srv.Serve(lis)
+		if err != nil && !errors.Is(err, grpc.ErrServerStopped) {
+			serveErr <- err
+			return
+		}
+
+		serveErr <- nil
+	}()
+
 	log.Printf("gRPC server listening on :%d", *port)
-	if err := srv.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
+
+	sigCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	select {
+	case err := <-serveErr:
+		if err != nil {
+			log.Fatalf("failed to serve: %v", err)
+		}
+		return
+	case <-sigCtx.Done():
+		log.Printf("shutdown signal received, draining gRPC server")
+	}
+
+	healthSrv.SetServingStatus("", grpc_health_v1.HealthCheckResponse_NOT_SERVING)
+
+	shutdownDone := make(chan struct{})
+	go func() {
+		srv.GracefulStop()
+		close(shutdownDone)
+	}()
+
+	const shutdownTimeout = 10 * time.Second
+	select {
+	case <-shutdownDone:
+		log.Printf("gRPC server shut down gracefully")
+	case <-time.After(shutdownTimeout):
+		log.Printf("graceful shutdown timed out after %s, forcing stop", shutdownTimeout)
+		srv.Stop()
+		<-shutdownDone
+	}
+
+	if err := <-serveErr; err != nil {
+		log.Printf("server terminated with error during shutdown: %v", err)
 	}
 }
 
