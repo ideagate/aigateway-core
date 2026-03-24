@@ -8,12 +8,16 @@ import (
 )
 
 // BatchJobStatusResult carries the current status of a provider-side batch job
-// and, on terminal success, the raw JSON-serialised responses.
+// and, on terminal success, the raw JSON-serialised responses and token counts.
 type BatchJobStatusResult struct {
 	// Status is one of the BatchJobStatus* constants from the models package.
 	Status string
 	// ResultsJSON holds the serialised responses; non-nil only on completion.
 	ResultsJSON []byte
+	// Token counts aggregated across all responses; non-zero only on completion.
+	InputTokenCount  int64
+	OutputTokenCount int64
+	TotalTokenCount  int64
 }
 
 type Provider interface {

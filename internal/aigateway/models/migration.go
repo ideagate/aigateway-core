@@ -5,5 +5,6 @@ func MigrationModels() []any {
 	return []any{
 		&BatchJob{},
 		&PromptConfig{},
+		&TokenJob{},
 	}
 }

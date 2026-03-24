@@ -11,6 +11,7 @@ import (
 
 	aigatewayv1 "github.com/ideagate/aigateway-core/gen/aigateway/v1"
 	"github.com/ideagate/aigateway-core/internal/aigateway/models"
+	"github.com/ideagate/aigateway-core/internal/aigateway/providers"
 	providermock "github.com/ideagate/aigateway-core/internal/aigateway/providers/_mock"
 	"github.com/ideagate/aigateway-core/internal/aigateway/repository"
 	repomock "github.com/ideagate/aigateway-core/internal/aigateway/repository/_mock"
@@ -361,4 +362,220 @@ func TestUpsertPromptConfig_PersistsMetadata(t *testing.T) {
 	})
 	require.NoError(t, err)
 	assert.Equal(t, map[string]string{"tenant": "alpha", "usecase": "submit"}, resp.GetPromptConfig().GetMetadata())
+}
+
+// ── buildTokenJobs ───────────────────────────────────────────────────────────
+
+func TestBuildTokenJobs(t *testing.T) {
+	tests := []struct {
+		name       string
+		jobType    string
+		jobID      string
+		input      int64
+		output     int64
+		total      int64
+		wantTypes  []string
+		wantCounts []int64
+	}{
+		{
+			name:       "all non-zero",
+			jobType:    models.TokenJobTypeBatchJob,
+			jobID:      "job-1",
+			input:      194,
+			output:     469,
+			total:      663,
+			wantTypes:  []string{models.TokenTypeInput, models.TokenTypeOutput, models.TokenTypeTotal},
+			wantCounts: []int64{194, 469, 663},
+		},
+		{
+			name:       "zero values omitted",
+			jobType:    models.TokenJobTypeBatchJob,
+			jobID:      "job-2",
+			input:      0,
+			output:     0,
+			total:      0,
+			wantTypes:  nil,
+			wantCounts: nil,
+		},
+		{
+			name:       "partial non-zero",
+			jobType:    models.TokenJobTypeBatchJob,
+			jobID:      "job-3",
+			input:      100,
+			output:     0,
+			total:      100,
+			wantTypes:  []string{models.TokenTypeInput, models.TokenTypeTotal},
+			wantCounts: []int64{100, 100},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got := buildTokenJobs(tc.jobType, tc.jobID, tc.input, tc.output, tc.total)
+			require.Len(t, got, len(tc.wantTypes))
+			for i, tj := range got {
+				assert.Equal(t, tc.jobType, tj.JobType)
+				assert.Equal(t, tc.jobID, tj.JobID)
+				assert.Equal(t, tc.wantTypes[i], tj.TokenType)
+				assert.Equal(t, tc.wantCounts[i], tj.TokenCount)
+			}
+		})
+	}
+}
+
+// ── SyncBatchJobStatus ───────────────────────────────────────────────────────
+
+func TestSyncBatchJobStatus_SavesTokenJobsOnCompletion(t *testing.T) {
+	const jobID = "job-abc"
+	const refID = "ref-xyz"
+
+	providerResult := &providers.BatchJobStatusResult{
+		Status:           models.BatchJobStatusCompleted,
+		ResultsJSON:      []byte(`[{"response":{"text":"ok"}}]`),
+		InputTokenCount:  194,
+		OutputTokenCount: 469,
+		TotalTokenCount:  663,
+	}
+
+	provider := providermock.NewProvider(t)
+	provider.EXPECT().
+		GetBatchJobStatus(mock.Anything, refID).
+		Return(providerResult, nil).
+		Once()
+
+	repo := repomock.NewRepository(t)
+	lock := repomock.NewDistributionLock(t)
+
+	lock.EXPECT().
+		Acquire(mock.Anything, lockKeyPrefix+jobID, lockTTL).
+		Return(true, nil).
+		Once()
+	lock.EXPECT().
+		Release(mock.Anything, lockKeyPrefix+jobID).
+		Return(nil).
+		Once()
+
+	repo.EXPECT().
+		UpdateBatchJob(mock.Anything, mock.Anything).
+		Return(nil).
+		Once()
+
+	repo.EXPECT().
+		UpsertTokenJobs(mock.Anything, mock.MatchedBy(func(jobs []*models.TokenJob) bool {
+			if !assert.Len(t, jobs, 3) {
+				return false
+			}
+			byType := make(map[string]int64, len(jobs))
+			for _, j := range jobs {
+				assert.Equal(t, models.TokenJobTypeBatchJob, j.JobType)
+				assert.Equal(t, jobID, j.JobID)
+				byType[j.TokenType] = j.TokenCount
+			}
+			assert.Equal(t, int64(194), byType[models.TokenTypeInput])
+			assert.Equal(t, int64(469), byType[models.TokenTypeOutput])
+			assert.Equal(t, int64(663), byType[models.TokenTypeTotal])
+			return true
+		})).
+		Return(nil).
+		Once()
+
+	uc := New(provider, repo, lock)
+	activeRef := refID
+	job := &models.BatchJob{
+		ID:          jobID,
+		ReferenceID: &activeRef,
+		Status:      models.BatchJobStatusProcessing,
+	}
+	err := uc.(*usecase).syncJobStatus(context.Background(), job)
+	require.NoError(t, err)
+}
+
+func TestSyncBatchJobStatus_NoTokenJobsOnFailure(t *testing.T) {
+	const jobID = "job-fail"
+	const refID = "ref-fail"
+
+	provider := providermock.NewProvider(t)
+	provider.EXPECT().
+		GetBatchJobStatus(mock.Anything, refID).
+		Return(&providers.BatchJobStatusResult{Status: models.BatchJobStatusFailed}, nil).
+		Once()
+
+	repo := repomock.NewRepository(t)
+	lock := repomock.NewDistributionLock(t)
+
+	lock.EXPECT().
+		Acquire(mock.Anything, lockKeyPrefix+jobID, lockTTL).
+		Return(true, nil).
+		Once()
+	lock.EXPECT().
+		Release(mock.Anything, lockKeyPrefix+jobID).
+		Return(nil).
+		Once()
+
+	repo.EXPECT().
+		UpdateBatchJob(mock.Anything, mock.Anything).
+		Return(nil).
+		Once()
+
+	// UpsertTokenJobs must NOT be called for a failed job.
+
+	uc := New(provider, repo, lock)
+	activeRef := refID
+	job := &models.BatchJob{
+		ID:          jobID,
+		ReferenceID: &activeRef,
+		Status:      models.BatchJobStatusProcessing,
+	}
+	err := uc.(*usecase).syncJobStatus(context.Background(), job)
+	require.NoError(t, err)
+}
+
+func TestSyncBatchJobStatus_TokenJobUpsertErrorIsLogged(t *testing.T) {
+	const jobID = "job-token-err"
+	const refID = "ref-token-err"
+
+	providerResult := &providers.BatchJobStatusResult{
+		Status:          models.BatchJobStatusCompleted,
+		InputTokenCount: 10,
+		TotalTokenCount: 10,
+	}
+
+	provider := providermock.NewProvider(t)
+	provider.EXPECT().
+		GetBatchJobStatus(mock.Anything, refID).
+		Return(providerResult, nil).
+		Once()
+
+	repo := repomock.NewRepository(t)
+	lock := repomock.NewDistributionLock(t)
+
+	lock.EXPECT().
+		Acquire(mock.Anything, lockKeyPrefix+jobID, lockTTL).
+		Return(true, nil).
+		Once()
+	lock.EXPECT().
+		Release(mock.Anything, lockKeyPrefix+jobID).
+		Return(nil).
+		Once()
+
+	repo.EXPECT().
+		UpdateBatchJob(mock.Anything, mock.Anything).
+		Return(nil).
+		Once()
+
+	repo.EXPECT().
+		UpsertTokenJobs(mock.Anything, mock.Anything).
+		Return(errors.New("db error")).
+		Once()
+
+	// The overall syncJobStatus should still succeed (error is logged, not returned).
+	uc := New(provider, repo, lock)
+	activeRef := refID
+	job := &models.BatchJob{
+		ID:          jobID,
+		ReferenceID: &activeRef,
+		Status:      models.BatchJobStatusProcessing,
+	}
+	err := uc.(*usecase).syncJobStatus(context.Background(), job)
+	require.NoError(t, err)
 }

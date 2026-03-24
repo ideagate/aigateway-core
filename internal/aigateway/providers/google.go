@@ -118,6 +118,7 @@ func (g *GoogleProvider) GetBatchJobStatus(ctx context.Context, referenceID stri
 		var responses any
 		if job.Dest != nil {
 			responses = job.Dest.InlinedResponses
+			result.InputTokenCount, result.OutputTokenCount, result.TotalTokenCount = aggregateTokenCounts(job.Dest.InlinedResponses)
 		}
 		resultsJSON, err := json.Marshal(responses)
 		if err != nil {
@@ -137,4 +138,19 @@ func (g *GoogleProvider) GetBatchJobStatus(ctx context.Context, referenceID stri
 	}
 
 	return result, nil
+}
+
+// aggregateTokenCounts sums prompt, candidates and total token counts across
+// all inlined responses. Nil responses or missing UsageMetadata are skipped.
+func aggregateTokenCounts(responses []*genai.InlinedResponse) (input, output, total int64) {
+	for _, r := range responses {
+		if r == nil || r.Response == nil || r.Response.UsageMetadata == nil {
+			continue
+		}
+		meta := r.Response.UsageMetadata
+		input += int64(meta.PromptTokenCount)
+		output += int64(meta.CandidatesTokenCount)
+		total += int64(meta.TotalTokenCount)
+	}
+	return input, output, total
 }
