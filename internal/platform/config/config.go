@@ -14,23 +14,30 @@ type Config struct {
 }
 
 type DatastoresConfig struct {
+	DBType   string         `mapstructure:"db_type"`
 	Postgres PostgresConfig `mapstructure:"postgres"`
+	MySQL    MySQLConfig    `mapstructure:"mysql"`
 	Redis    RedisConfig    `mapstructure:"redis"`
 }
 
-type PostgresConfig struct {
+type SQLConfig struct {
 	Host     string `mapstructure:"host"`
 	Port     int    `mapstructure:"port"`
 	Username string `mapstructure:"username"`
 	Password string `mapstructure:"password"`
 	DBName   string `mapstructure:"dbname"`
 	SSLMode  string `mapstructure:"sslmode"`
+	Params   string `mapstructure:"params"`
 }
+
+type PostgresConfig = SQLConfig
+type MySQLConfig = SQLConfig
 
 type RedisConfig struct {
 	Host     string `mapstructure:"host"`
 	Port     int    `mapstructure:"port"`
 	Password string `mapstructure:"password"`
+	Database int    `mapstructure:"database"`
 }
 
 type ProvidersConfig struct {
@@ -49,6 +56,24 @@ type VertexAIConfig struct {
 
 type SchedulerConfig struct {
 	SyncBatchJobStatusCron string `mapstructure:"sync_batch_job_status_cron"`
+}
+
+// ResolveSQLConfig picks the SQL datastore type and its config.
+// Defaults to postgres when datastores.db_type is omitted.
+func (d DatastoresConfig) ResolveSQLConfig() (string, SQLConfig, error) {
+	dbType := strings.ToLower(strings.TrimSpace(d.DBType))
+	if dbType == "" {
+		dbType = "postgres"
+	}
+
+	switch dbType {
+	case "postgres":
+		return dbType, d.Postgres, nil
+	case "mysql":
+		return dbType, d.MySQL, nil
+	default:
+		return "", SQLConfig{}, fmt.Errorf("datastores.db_type must be one of: postgres, mysql")
+	}
 }
 
 func LoadConfig(configPaths ...string) (*Config, error) {

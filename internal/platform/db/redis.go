@@ -21,6 +21,7 @@ func NewRedis(cfg platformconfig.RedisConfig) (*redis.Client, error) {
 	client := redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
 		Password: cfg.Password,
+		DB:       cfg.Database,
 	})
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

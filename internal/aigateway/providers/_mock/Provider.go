@@ -9,6 +9,7 @@ import (
 
 	"github.com/ideagate/aigateway-core/gen/aigateway/v1"
 	"github.com/ideagate/aigateway-core/internal/aigateway/providers"
+	"github.com/ideagate/aigateway-core/models"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -37,6 +38,74 @@ type Provider_Expecter struct {
 
 func (_m *Provider) EXPECT() *Provider_Expecter {
 	return &Provider_Expecter{mock: &_m.Mock}
+}
+
+// ChatCompletion provides a mock function for the type Provider
+func (_mock *Provider) ChatCompletion(ctx context.Context, request *models.ChatCompletionRequest) (*models.ChatCompletionResponse, error) {
+	ret := _mock.Called(ctx, request)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ChatCompletion")
+	}
+
+	var r0 *models.ChatCompletionResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.ChatCompletionRequest) (*models.ChatCompletionResponse, error)); ok {
+		return returnFunc(ctx, request)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.ChatCompletionRequest) *models.ChatCompletionResponse); ok {
+		r0 = returnFunc(ctx, request)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.ChatCompletionResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *models.ChatCompletionRequest) error); ok {
+		r1 = returnFunc(ctx, request)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// Provider_ChatCompletion_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ChatCompletion'
+type Provider_ChatCompletion_Call struct {
+	*mock.Call
+}
+
+// ChatCompletion is a helper method to define mock.On call
+//   - ctx context.Context
+//   - request *models.ChatCompletionRequest
+func (_e *Provider_Expecter) ChatCompletion(ctx interface{}, request interface{}) *Provider_ChatCompletion_Call {
+	return &Provider_ChatCompletion_Call{Call: _e.mock.On("ChatCompletion", ctx, request)}
+}
+
+func (_c *Provider_ChatCompletion_Call) Run(run func(ctx context.Context, request *models.ChatCompletionRequest)) *Provider_ChatCompletion_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *models.ChatCompletionRequest
+		if args[1] != nil {
+			arg1 = args[1].(*models.ChatCompletionRequest)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *Provider_ChatCompletion_Call) Return(chatCompletionResponse *models.ChatCompletionResponse, err error) *Provider_ChatCompletion_Call {
+	_c.Call.Return(chatCompletionResponse, err)
+	return _c
+}
+
+func (_c *Provider_ChatCompletion_Call) RunAndReturn(run func(ctx context.Context, request *models.ChatCompletionRequest) (*models.ChatCompletionResponse, error)) *Provider_ChatCompletion_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // GetBatchJobStatus provides a mock function for the type Provider

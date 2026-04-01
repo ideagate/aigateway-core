@@ -14,7 +14,7 @@ db-migrate:
 	go run ./cmd/db-migrate
 
 test:
-	go test -v ./...
+	go test -v -short ./...
 
 ## scheduler: run the background scheduler (job-checker cron and future jobs)
 scheduler:

@@ -5,6 +5,7 @@ import (
 
 	aigatewayv1 "github.com/ideagate/aigateway-core/gen/aigateway/v1"
 	platformconfig "github.com/ideagate/aigateway-core/internal/platform/config"
+	"github.com/ideagate/aigateway-core/models"
 )
 
 // BatchJobStatusResult carries the current status of a provider-side batch job
@@ -22,6 +23,7 @@ type BatchJobStatusResult struct {
 
 type Provider interface {
 	Name() string
+	ChatCompletion(ctx context.Context, request *models.ChatCompletionRequest) (*models.ChatCompletionResponse, error)
 	SubmitBatchJob(ctx context.Context, request []*aigatewayv1.SubmitBulkChatCompletionsRequest) (*aigatewayv1.SubmitBulkChatCompletionsResponse, error)
 	// GetBatchJobStatus fetches the current status of a previously submitted batch
 	// job from the provider. referenceID is the value stored in BatchJob.ReferenceID.

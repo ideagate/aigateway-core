@@ -9,6 +9,7 @@ import (
 
 	aigatewayv1 "github.com/ideagate/aigateway-core/gen/aigateway/v1"
 	"github.com/ideagate/aigateway-core/internal/aigateway/models"
+	models2 "github.com/ideagate/aigateway-core/models"
 	"google.golang.org/genai"
 )
 
@@ -18,7 +19,7 @@ type GoogleProvider struct {
 
 func newGoogleProvider(apiKey string) (*GoogleProvider, error) {
 	if apiKey == "" {
-		return nil, fmt.Errorf("providers.gemini.api_key is required")
+		return nil, fmt.Errorf("google api key is required")
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -39,6 +40,48 @@ func newGoogleProvider(apiKey string) (*GoogleProvider, error) {
 
 func (g *GoogleProvider) Name() string {
 	return "google"
+}
+
+func (g *GoogleProvider) ChatCompletion(ctx context.Context, request *models2.ChatCompletionRequest) (*models2.ChatCompletionResponse, error) {
+	// construct config
+	config := &genai.GenerateContentConfig{}
+	if request.Temperature != 0 {
+		config.Temperature = genai.Ptr(request.Temperature)
+	}
+	if request.SystemInstruction.Text != "" {
+		config.SystemInstruction = &genai.Content{
+			Parts: []*genai.Part{{Text: request.SystemInstruction.Text}},
+		}
+	}
+	if request.JsonSchemaResponse != "" {
+		genAIResponseSchema := genai.Schema{}
+		if err := json.Unmarshal([]byte(request.JsonSchemaResponse), &genAIResponseSchema); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal json schema: %w", err)
+		}
+		config.ResponseMIMEType = "application/json"
+		config.ResponseSchema = &genAIResponseSchema
+	}
+
+	// construct contents
+	contents := []*genai.Content{
+		{
+			Role: "user",
+			Parts: []*genai.Part{
+				{Text: request.Content.Text},
+			},
+		},
+	}
+
+	result, err := g.client.Models.GenerateContent(ctx, request.Model, contents, config)
+	if err != nil {
+		return nil, fmt.Errorf("generate content: %w", err)
+	}
+
+	return &models2.ChatCompletionResponse{
+		Content: models2.Content{
+			Text: result.Text(),
+		},
+	}, nil
 }
 
 func (g *GoogleProvider) SubmitBatchJob(ctx context.Context, requests []*aigatewayv1.SubmitBulkChatCompletionsRequest) (*aigatewayv1.SubmitBulkChatCompletionsResponse, error) {

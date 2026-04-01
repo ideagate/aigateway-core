@@ -17,8 +17,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to load config: %v", err)
 	}
+	dbType, sqlCfg, err := cfg.Datastores.ResolveSQLConfig()
+	if err != nil {
+		log.Fatalf("failed to resolve datastore config: %v", err)
+	}
 
-	db, err := platformdb.Open(cfg.Datastores.Postgres)
+	db, err := platformdb.Open(dbType, sqlCfg)
 	if err != nil {
 		log.Fatalf("failed to connect to database: %v", err)
 	}
