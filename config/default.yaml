@@ -25,6 +25,8 @@ providers:
   vertexai:
     project: your-gcp-project
     location: us-central1
+  claude:
+    api_key: your-claude-api-key
 
 scheduler:
   sync_batch_job_status_cron: "* * * * *"

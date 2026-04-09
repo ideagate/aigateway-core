@@ -33,3 +33,7 @@ type Provider interface {
 func New(geminiCfg platformconfig.GeminiConfig) (Provider, error) {
 	return newGoogleProvider(geminiCfg.APIKey)
 }
+
+func NewClaude(claudeCfg platformconfig.ClaudeConfig) (Provider, error) {
+	return newClaudeProvider(claudeCfg.APIKey)
+}
