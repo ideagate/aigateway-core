@@ -43,6 +43,7 @@ type RedisConfig struct {
 type ProvidersConfig struct {
 	Gemini   GeminiConfig   `mapstructure:"gemini"`
 	VertexAI VertexAIConfig `mapstructure:"vertexai"`
+	Claude   ClaudeConfig   `mapstructure:"claude"`
 }
 
 type GeminiConfig struct {
@@ -52,6 +53,10 @@ type GeminiConfig struct {
 type VertexAIConfig struct {
 	Project  string `mapstructure:"project"`
 	Location string `mapstructure:"location"`
+}
+
+type ClaudeConfig struct {
+	APIKey string `mapstructure:"api_key"`
 }
 
 type SchedulerConfig struct {
