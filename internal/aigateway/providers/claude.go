@@ -17,7 +17,7 @@ import (
 const claudeDefaultMaxTokens = 4096
 
 type ClaudeProvider struct {
-	client *anthropic.Client
+	client anthropic.Client
 }
 
 func newClaudeProvider(apiKey string) (*ClaudeProvider, error) {
@@ -25,10 +25,8 @@ func newClaudeProvider(apiKey string) (*ClaudeProvider, error) {
 		return nil, fmt.Errorf("claude api key is required")
 	}
 
-	client := anthropic.NewClient(option.WithAPIKey(apiKey))
-
 	return &ClaudeProvider{
-		client: &client,
+		client: anthropic.NewClient(option.WithAPIKey(apiKey)),
 	}, nil
 }
 
@@ -136,6 +134,9 @@ func (c *ClaudeProvider) GetBatchJobStatus(ctx context.Context, referenceID stri
 		}
 
 		// Determine overall status and aggregate token counts.
+		// Batches with at least one succeeded request are marked completed,
+		// matching the GoogleProvider behaviour for partial success. Callers
+		// can inspect the individual ResultsJSON entries for per-request errors.
 		succeeded := batch.RequestCounts.Succeeded
 		if succeeded == 0 {
 			result.Status = models.BatchJobStatusFailed
